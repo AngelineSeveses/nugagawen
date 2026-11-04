@@ -41,3 +41,6 @@ example
 # generated native folders
 /ios
 /android
+
+# OpenStreetMap raw downloads (rebuild with scripts/osm/fetch.mjs)
+data/osm-raw/

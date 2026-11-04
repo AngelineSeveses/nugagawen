@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nugagawen: Phase 5 mockups, draft 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Ionicons: the same icon family the app gets from @expo/vector-icons -->
+<script type="module" src="https://unpkg.com/ionicons@7.4.0/dist/ionicons/ionicons.esm.js"></script>
+<style>
+/* ---------- Tokens: mirror docs/03-design-system.md ---------- */
+:root {
+  --paper: #F7F4ED; --surface: #FFFFFF; --sage: #E6EBDE;
+  --ink: #24231F; --ink2: #6B655C;
+  --accent: #E77D51; --onAccent: #24231F; --accentInk: #A84B24; --onInk: #FFFFFF;
+  --hairline: #DED8CC; --controlBorder: #8A8377;
+  --success: #287A52; --error: #C13D36; --warning: #965A12;
+  --scrim: rgba(36, 35, 31, 0.55); --skeleton: #EAE5DA;
+  --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --platform: -apple-system, system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ---------- Board (presentation only, not product UI) ---------- */
+body { background: #D6D2C8; font-family: system-ui, sans-serif; color: #24231F; padding: 40px 32px 96px; }
+.board-head { max-width: 860px; margin-bottom: 48px; }
+.board-head h1 { font: 700 22px/28px system-ui, sans-serif; margin-bottom: 10px; }
+.board-head p { font: 400 14px/21px system-ui, sans-serif; color: #45413A; margin-bottom: 6px; }
+.frames { display: flex; flex-wrap: wrap; gap: 64px 48px; align-items: flex-start; }
+figure { width: 390px; }
+figure.compact { width: 320px; }
+figcaption { margin-top: 20px; font: 400 13px/19px system-ui, sans-serif; color: #3A3731; }
+figcaption h2 { font: 600 15px/20px system-ui, sans-serif; color: #24231F; margin-bottom: 6px; }
+figcaption ul { padding-left: 18px; }
+
+/* ---------- Device frame (presentation only) ---------- */
+.phone { font-family: var(--font); color: var(--ink); background: var(--paper);
+  width: 390px; height: 844px; border-radius: 48px; overflow: hidden; position: relative;
+  display: flex; flex-direction: column; box-shadow: 0 0 0 10px #1F1E1B, 0 24px 48px rgba(0,0,0,.18); }
+.phone.compact { width: 320px; height: 640px; border-radius: 26px; }
+figure.w360 { width: 360px; }
+.phone.w360 { width: 360px; height: 780px; border-radius: 40px; }
+.w360 .tile { padding: 12px 8px; }
+
+/* Platform chrome, drawn simplified: iOS and Android render their own */
+.status { height: 54px; flex: none; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 30px 0 46px; font: 600 17px/1 var(--platform); }
+.status .sys { display: flex; gap: 6px; font-size: 17px; }
+.status.light { color: #fff; }
+.compact .status { height: 28px; padding: 0 16px; font-size: 13px; }
+.compact .status .sys { font-size: 14px; gap: 4px; }
+.navbar { height: 44px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 8px; font: 400 17px/1 var(--platform); }
+.navbar .back { display: flex; align-items: center; gap: 2px; }
+.navbar .back ion-icon { font-size: 28px; }
+.tabbar { flex: none; height: 83px; display: grid; grid-template-columns: repeat(3, 1fr); padding-top: 7px;
+  border-top: 1px solid var(--hairline); background: var(--paper); position: relative; }
+.tab { display: flex; flex-direction: column; align-items: center; gap: 2px; font: 500 10px/12px var(--platform); color: var(--ink2); }
+.tab ion-icon { font-size: 26px; }
+.tab.on { color: var(--ink); }
+.compact .tabbar { height: 72px; padding-top: 10px; }
+.compact .tab { font-size: 12px; gap: 4px; }
+.compact .tab ion-icon { font-size: 24px; }
+.homebar { position: absolute; left: 50%; bottom: 8px; width: 134px; height: 5px; border-radius: 3px; background: var(--ink); transform: translateX(-50%); }
+.safe-bottom { flex: none; height: 34px; position: relative; }
+
+/* ---------- Layout ---------- */
+.scroll { flex: 1; overflow: hidden; padding: 0 24px; }
+.scroll.bleed { padding: 0; }
+.pad { padding: 0 24px; }
+.actionbar { flex: none; display: flex; gap: 8px; padding: 16px 24px; border-top: 1px solid var(--hairline); background: var(--paper); }
+.rule { height: 1px; background: var(--hairline); margin: 16px 0; }
+.mt4 { margin-top: 4px; } .mt8 { margin-top: 8px; } .mt12 { margin-top: 12px; } .mt16 { margin-top: 16px; }
+.mt24 { margin-top: 24px; } .mt32 { margin-top: 32px; } .mt40 { margin-top: 40px; }
+
+/* ---------- Type scale ---------- */
+.t-wordmark { font: 800 20px/24px var(--font); letter-spacing: -0.3px; }
+.t-display { font: 700 32px/38px var(--font); letter-spacing: -0.5px; }
+.t-h1 { font: 700 28px/34px var(--font); letter-spacing: -0.4px; }
+.t-h3 { font: 600 20px/26px var(--font); letter-spacing: -0.1px; }
+.t-h4 { font: 600 18px/24px var(--font); }
+.t-bodyL { font: 400 16px/24px var(--font); }
+.t-body { font: 400 14px/20px var(--font); letter-spacing: 0.1px; }
+.t-label { font: 600 14px/20px var(--font); letter-spacing: 0.1px; }
+.t-caption { font: 500 12px/16px var(--font); letter-spacing: 0.2px; }
+.ink2 { color: var(--ink2); }
+
+/* ---------- Components ---------- */
+.btn { min-height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 0 20px; font: 600 16px/20px var(--font); letter-spacing: 0.1px; border: 1px solid transparent; }
+.btn ion-icon { font-size: 22px; }
+.btn.lg { font: 700 18px/24px var(--font); letter-spacing: 0; }
+.btn.primary { background: var(--accent); color: var(--onAccent); }
+.btn.secondary { background: var(--surface); color: var(--ink); border-color: var(--hairline); }
+.btn.md { min-height: 48px; }
+.btn.grow { flex: 1; }
+.btn.inline { display: inline-flex; }
+
+.choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tile { position: relative; min-height: 72px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px;
+  padding: 12px; display: flex; flex-direction: column; gap: 6px; color: var(--ink); }
+.tile .ic { font-size: 24px; }
+.tile .name { font: 600 16px/20px var(--font); letter-spacing: 0.1px; }
+.tile .peso { font: 700 16px/20px var(--font); letter-spacing: 0.5px; }
+.tile .range { font: 400 14px/20px var(--font); letter-spacing: 0.1px; color: var(--ink2); }
+.tile .check { position: absolute; top: 10px; right: 10px; font-size: 20px; }
+.tile.sel { background: var(--ink); border-color: var(--ink); color: var(--onInk); }
+.tile.sel .range { color: var(--onInk); }
+/* Narrow screens / large text: tiles reflow into full-width rows */
+.compact .choices { grid-template-columns: 1fr; }
+.compact .tile { flex-direction: row; align-items: center; min-height: 56px; gap: 12px; padding: 12px 16px; }
+.compact .tile .check { position: static; margin-left: auto; }
+.compact .tile .range { margin-left: auto; }
+.compact .tile .range ~ .check { margin-left: 4px; }
+
+.locrow { display: flex; align-items: center; gap: 12px; min-height: 56px; }
+.locrow .pin { font-size: 22px; flex: none; }
+.locrow .txt { flex: 1; min-width: 0; }
+.locrow .chev { font-size: 20px; color: var(--ink2); }
+
+.pick { display: inline-flex; align-items: center; gap: 6px; background: var(--sage); border-radius: 8px;
+  padding: 2px 8px 2px 6px; font: 600 14px/20px var(--font); letter-spacing: 0.1px; color: var(--ink); }
+.pick ion-icon { font-size: 16px; }
+
+.photo { position: relative; border-radius: 16px; overflow: hidden; aspect-ratio: 16 / 9; }
+.row-actions { display: flex; gap: 8px; padding-bottom: 48px; }
+.chip-on-photo { position: absolute; background: var(--scrim); color: #fff; font: 500 12px/16px var(--font);
+  letter-spacing: 0.2px; padding: 2px 8px; border-radius: 8px; }
+.attr { left: 8px; bottom: 8px; }
+.count { right: 8px; bottom: 8px; }
+.thumb { width: 72px; height: 72px; border-radius: 12px; flex: none; }
+.range .amt, .range .dir { display: block; }
+
+.meta { display: flex; flex-wrap: wrap; column-gap: 16px; row-gap: 4px; font: 400 14px/20px var(--font); letter-spacing: 0.1px; }
+.meta span { display: inline-flex; align-items: center; gap: 4px; }
+.meta ion-icon { font-size: 16px; color: var(--ink2); }
+
+.pickrow { display: flex; gap: 16px; align-items: flex-start; }
+.pickrow .col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.pickrow .pick { align-self: flex-start; margin-bottom: 4px; }
+
+.sk { background: var(--skeleton); border-radius: 8px; }
+
+.hero { position: relative; aspect-ratio: 4 / 3; flex: none; }
+.hero .topscrim { position: absolute; inset: 0 0 auto 0; height: 112px; background: linear-gradient(rgba(36,35,31,.45), rgba(36,35,31,0)); }
+.hero .status { position: absolute; inset: 0 0 auto 0; }
+.roundbtn { position: absolute; width: 44px; height: 44px; border-radius: 50%; background: var(--surface); color: var(--ink);
+  display: grid; place-items: center; font-size: 22px; box-shadow: 0 1px 3px rgba(36,35,31,.16); }
+.hero .roundbtn { top: 58px; left: 16px; }
+.facts { display: flex; flex-direction: column; gap: 12px; }
+.fact { display: flex; gap: 12px; align-items: flex-start; font: 400 16px/24px var(--font); }
+.fact ion-icon { font-size: 20px; color: var(--ink2); margin-top: 2px; flex: none; }
+.open { color: var(--success); font-weight: 600; }
+.why { background: var(--sage); border-radius: 12px; padding: 16px; }
+
+/* Photo placeholders: blurred, like the low-res preview shown while a real photo loads */
+.ph-kainan { background:
+  radial-gradient(45% 55% at 28% 38%, #A8643A, transparent),
+  radial-gradient(40% 50% at 72% 62%, #E2B47C, transparent),
+  radial-gradient(60% 60% at 55% 12%, #3E2A1E, transparent),
+  radial-gradient(50% 50% at 12% 88%, #6B4A2F, transparent), #7A5236; }
+.ph-gallery { background:
+  radial-gradient(28% 38% at 58% 46%, #B5603F, transparent),
+  radial-gradient(60% 70% at 22% 28%, #E4E1DA, transparent),
+  radial-gradient(50% 60% at 82% 82%, #8D8F93, transparent), #BDBBB4; }
+.ph-pansit { background:
+  radial-gradient(42% 46% at 42% 52%, #D9A556, transparent),
+  radial-gradient(50% 50% at 78% 28%, #5F7A3E, transparent),
+  radial-gradient(60% 50% at 18% 82%, #3A3026, transparent), #8A6A3C; }
+.ph-park { background:
+  radial-gradient(60% 50% at 30% 70%, #4F7A3A, transparent),
+  radial-gradient(55% 45% at 70% 25%, #A9C6D8, transparent),
+  radial-gradient(40% 40% at 80% 75%, #2F4A27, transparent), #6E8F55; }
+.ph-books { background:
+  radial-gradient(45% 50% at 35% 45%, #8C3B2E, transparent),
+  radial-gradient(45% 50% at 70% 55%, #2F4E6B, transparent),
+  radial-gradient(60% 60% at 50% 10%, #D8C9A8, transparent), #6A5444; }
+.ph-hero { background:
+  radial-gradient(35% 30% at 30% 30%, #F0C27A, transparent),
+  radial-gradient(40% 35% at 75% 40%, #D9894A, transparent),
+  radial-gradient(70% 50% at 50% 95%, #2A1D15, transparent),
+  radial-gradient(50% 50% at 15% 70%, #5A3B26, transparent), #4A3223; }
+</style>
+</head>
+<body>
+
+<header class="board-head">
+  <h1>Nugagawen: Phase 5 high-fidelity mockups (draft 2, 4 Nov 2026)</h1>
+  <p><strong>Changed after reviewing draft 1:</strong> Results actions moved from a pinned bar to the end of the list, and the lead photo went from 3:2 to 16:9, so all three picks fit on one screen. "Bawat tao" [per person] moved into the budget question, so prices fit on one line. Budget ranges no longer wrap.</p>
+  <p>All places, ratings and prices are fictional samples. Photos are shown as blurred placeholders, the way the app shows a photo while it loads. Real place photos come from the data source in Phase 9.</p>
+  <p>Status bar, back button and tab bar are drawn simplified. iOS and Android render their own versions of these.</p>
+</header>
+
+<main class="frames">
+
+<!-- ===================== 01 DISCOVER ===================== -->
+<figure id="discover">
+  <div class="phone">
+    <div class="status"><span>9:41</span><span class="sys"><ion-icon name="cellular"></ion-icon><ion-icon name="wifi"></ion-icon><ion-icon name="battery-full"></ion-icon></span></div>
+    <div class="scroll">
+      <div class="t-wordmark mt8">Nugagawen?</div>
+      <div class="locrow mt16">
+        <ion-icon class="pin" name="location-outline"></ion-icon>
+        <div class="txt"><div class="t-label" style="font-size:16px;line-height:24px">Malapit sa Poblacion, Makati</div><div class="t-body ink2">sa loob ng 3 km</div></div>
+        <ion-icon class="chev" name="chevron-forward"></ion-icon>
+      </div>
+      <div class="t-bodyL ink2 mt32">Magandang hapon.</div>
+      <div class="t-display mt4">Wala pang plano?</div>
+      <div class="t-bodyL mt4">Tara, hanapan kita.</div>
+
+      <div class="t-h4 mt40">Ano'ng gusto mo?</div>
+      <div class="choices mt12">
+        <div class="tile"><ion-icon class="ic" name="restaurant-outline"></ion-icon><span class="name">Kain</span></div>
+        <div class="tile"><ion-icon class="ic" name="walk-outline"></ion-icon><span class="name">Gala</span></div>
+        <div class="tile sel"><ion-icon class="ic" name="apps-outline"></ion-icon><span class="name">Kahit ano</span><ion-icon class="check" name="checkmark-circle"></ion-icon></div>
+      </div>
+
+      <div class="t-h4 mt32">Magkano ang budget bawat tao?</div>
+      <div class="choices mt12">
+        <div class="tile"><span class="peso">₱</span><span class="name">Tipid</span><span class="range"><span class="amt">₱250</span><span class="dir">pababa</span></span></div>
+        <div class="tile sel"><span class="peso">₱₱</span><span class="name">Sakto</span><span class="range">₱250–600</span><ion-icon class="check" name="checkmark-circle"></ion-icon></div>
+        <div class="tile"><span class="peso">₱₱₱</span><span class="name">Sosyal</span><span class="range"><span class="amt">₱600</span><span class="dir">pataas</span></span></div>
+      </div>
+    </div>
+    <div class="actionbar"><div class="btn primary lg grow">Nugagawen?</div></div>
+    <nav class="tabbar">
+      <div class="tab on"><ion-icon name="search"></ion-icon><span>Hanap</span></div>
+      <div class="tab"><ion-icon name="bookmark-outline"></ion-icon><span>Saved</span></div>
+      <div class="tab"><ion-icon name="settings-outline"></ion-icon><span>Settings</span></div>
+      <div class="homebar"></div>
+    </nav>
+  </div>
+  <figcaption>
+    <h2>01 Discover, 390 × 844</h2>
+    <ul>
+      <li>The one orange element is the question on the button.</li>
+      <li>Defaults pre-selected (Kahit ano, Sakto), so a returning user taps once.</li>
+      <li>Selected = ink fill + check icon, never color alone.</li>
+    </ul>
+  </figcaption>
+</figure>
+
+<!-- ===================== 01b DISCOVER, COMPACT ===================== -->
+<figure id="discover-compact" class="compact">
+  <div class="phone compact">
+    <div class="status"><span>9:41</span><span class="sys"><ion-icon name="cellular"></ion-icon><ion-icon name="wifi"></ion-icon><ion-icon name="battery-full"></ion-icon></span></div>
+    <div class="scroll">
+      <div class="t-wordmark mt8">Nugagawen?</div>
+      <div class="locrow mt8">
+        <ion-icon class="pin" name="location-outline"></ion-icon>
+        <div class="txt"><div class="t-label" style="font-size:16px;line-height:24px">Malapit sa Poblacion, Makati</div><div class="t-body ink2">sa loob ng 3 km</div></div>
+        <ion-icon class="chev" name="chevron-forward"></ion-icon>
+      </div>
+      <div class="t-bodyL ink2 mt24">Magandang hapon.</div>
+      <div class="t-display mt4">Wala pang plano?</div>
+      <div class="t-bodyL mt4">Tara, hanapan kita.</div>
+      <div class="t-h4 mt32">Ano'ng gusto mo?</div>
+      <div class="choices mt12">
+        <div class="tile"><ion-icon class="ic" name="restaurant-outline"></ion-icon><span class="name">Kain</span></div>
+        <div class="tile"><ion-icon class="ic" name="walk-outline"></ion-icon><span class="name">Gala</span></div>
+        <div class="tile sel"><ion-icon class="ic" name="apps-outline"></ion-icon><span class="name">Kahit ano</span><ion-icon class="check" name="checkmark-circle"></ion-icon></div>
+      </div>
+      <div class="t-h4 mt32">Magkano ang budget bawat tao?</div>
+      <div class="choices mt12">
+        <div class="tile"><span class="peso">₱</span><span class="name">Tipid</span><span class="range"><span class="amt">₱250</span><span class="dir">pababa</span></span></div>
+        <div class="tile sel"><span class="peso">₱₱</span><span class="name">Sakto</span><span class="range">₱250–600</span><ion-icon class="check" name="checkmark-circle"></ion-icon></div>
+      </div>
+    </div>
+    <div class="actionbar"><div class="btn primary lg grow">Nugagawen?</div></div>
+    <nav class="tabbar">
+      <div class="tab on"><ion-icon name="search"></ion-icon><span>Hanap</span></div>
+      <div class="tab"><ion-icon name="bookmark-outline"></ion-icon><span>Saved</span></div>
+      <div class="tab"><ion-icon name="settings-outline"></ion-icon><span>Settings</span></div>
+    </nav>
+  </div>
+  <figcaption>
+    <h2>01b Discover, small phone 320 × 640</h2>
+    <ul>
+      <li>When a tile label can't fit on one line even with 8 pt padding, the tiles reflow into full-width rows. Text never shrinks.</li>
+      <li>Content scrolls; the button stays pinned in the thumb zone.</li>
+    </ul>
+  </figcaption>
+</figure>
+
+<!-- ===================== 01c DISCOVER, 360 ===================== -->
+<figure id="discover-360" class="w360">
+  <div class="phone w360">
+    <div class="status"><span>9:41</span><span class="sys"><ion-icon name="cellular"></ion-icon><ion-icon name="wifi"></ion-icon><ion-icon name="battery-full"></ion-icon></span></div>
+    <div class="scroll">
+      <div class="t-wordmark mt8">Nugagawen?</div>
+      <div class="locrow mt16">
+        <ion-icon class="pin" name="location-outline"></ion-icon>
+        <div class="txt"><div class="t-label" style="font-size:16px;line-height:24px">Malapit sa Lahug, Cebu City</div><div class="t-body ink2">sa loob ng 3 km</div></div>
+        <ion-icon class="chev" name="chevron-forward"></ion-icon>
+      </div>
+      <div class="t-bodyL ink2 mt24">Magandang gabi.</div>
+      <div class="t-display mt4">Wala pang plano?</div>
+      <div class="t-bodyL mt4">Tara, hanapan kita.</div>
+      <div class="t-h4 mt32">Ano'ng gusto mo?</div>
+      <div class="choices mt12">
+        <div class="tile sel"><ion-icon class="ic" name="restaurant-outline"></ion-icon><span class="name">Kain</span><ion-icon class="check" name="checkmark-circle"></ion-icon></div>
+        <div class="tile"><ion-icon class="ic" name="walk-outline"></ion-icon><span class="name">Gala</span></div>
+        <div class="tile"><ion-icon class="ic" name="apps-outline"></ion-icon><span class="name">Kahit ano</span></div>
+      </div>
+      <div class="t-h4 mt32">Magkano ang budget bawat tao?</div>
+      <div class="choices mt12">
+        <div class="tile sel"><span class="peso">₱</span><span class="name">Tipid</span><span class="range"><span class="amt">₱250</span><span class="dir">pababa</span></span><ion-icon class="check" name="checkmark-circle"></ion-icon></div>
+        <div class="tile"><span class="peso">₱₱</span><span class="name">Sakto</span><span class="range">₱250–600</span></div>
+        <div class="tile"><span class="peso">₱₱₱</span><span class="name">Sosyal</span><span class="range"><span class="amt">₱600</span><span class="dir">pataas</span></span></div>
+      </div>
+    </div>
+    <div class="actionbar"><div class="btn primary lg grow">Nugagawen?</div></div>
+    <nav class="tabbar">
+      <div class="tab on"><ion-icon name="search"></ion-icon><span>Hanap</span></div>
+      <div class="tab"><ion-icon name="bookmark-outline"></ion-icon><span>Saved</span></div>
+      <div class="tab"><ion-icon name="settings-outline"></ion-icon><span>Settings</span></div>
+      <div class="homebar"></div>
+    </nav>
+  </div>
+  <figcaption>
+    <h2>01c Discover, common Android width 360 × 780</h2>
+    <ul>
+      <li>Tiles keep three across with 8 pt side padding instead of 12, the smallest padding that keeps every label on one line (measured).</li>
+      <li>Remembered choices shown here: Kain and Tipid.</li>
+    </ul>
+  </figcaption>
+</figure>
+
+<!-- ===================== 03 RESULTS ===================== -->
+<figure id="results">
+  <div class="phone">
+    <div class="status"><span>9:41</span><span class="sys"><ion-icon name="cellular"></ion-icon><ion-icon name="wifi"></ion-icon><ion-icon name="battery-full"></ion-icon></span></div>
+    <div class="navbar"><span class="back"><ion-icon name="chevron-back"></ion-icon>Hanap</span><span>Simula ulit</span></div>
+    <div class="scroll">
+      <div class="t-display mt8">Pili ka na lang.</div>
+      <div class="t-bodyL ink2 mt4">Malapit sa Poblacion, pasok sa Sakto.</div>
+
+      <div class="mt24"><span class="pick"><ion-icon name="checkmark-circle-outline"></ion-icon>Safe choice</span></div>
+      <div class="photo ph-kainan mt12"><span class="chip-on-photo attr">Photo: sample</span></div>
+      <div class="t-h3 mt12">Kainan sa Sulok</div>
+      <div class="t-body ink2 mt4">Filipino restaurant</div>
+      <div class="meta mt8">
+        <span><ion-icon name="star"></ion-icon>4.6 (1,203)</span>
+        <span><ion-icon name="location-outline"></ion-icon>850 m</span>
+        <span><ion-icon name="wallet-outline"></ion-icon>~₱250–600</span>
+      </div>
+      <div class="t-body mt8">Mataas ang rating at malapit lang.</div>
+
+      <div class="rule"></div>
+      <div class="pickrow">
+        <div class="thumb ph-gallery"></div>
+        <div class="col">
+          <span class="pick"><ion-icon name="dice-outline"></ion-icon>Surprise me</span>
+          <div class="t-h4">Bahay Sining Gallery</div>
+          <div class="t-body ink2">Art gallery</div>
+          <div class="meta"><span><ion-icon name="star"></ion-icon>4.5</span><span><ion-icon name="location-outline"></ion-icon>1.4 km</span><span><ion-icon name="wallet-outline"></ion-icon>Libre</span></div>
+          <div class="t-body mt4">Iba sa karaniwan mong pinupuntahan.</div>
+        </div>
+      </div>
+
+      <div class="rule"></div>
+      <div class="pickrow">
+        <div class="thumb ph-pansit"></div>
+        <div class="col">
+          <span class="pick"><ion-icon name="diamond-outline"></ion-icon>Hidden gem</span>
+          <div class="t-h4">Pansitan sa Gilid</div>
+          <div class="t-body ink2">Noodle shop</div>
+          <div class="meta"><span><ion-icon name="star"></ion-icon>4.7 (86)</span><span><ion-icon name="location-outline"></ion-icon>2.1 km</span><span><ion-icon name="wallet-outline"></ion-icon>~₱250–400</span></div>
+          <div class="t-body mt4">Kaunti pa lang ang nakakaalam.</div>
+        </div>
+      </div>
+      <div class="row-actions mt32">
+        <div class="btn secondary grow"><ion-icon name="refresh-outline"></ion-icon>Iba naman</div>
+        <div class="btn secondary grow">Baguhin</div>
+      </div>
+    </div>
+    <div class="homebar"></div>
+  </div>
+  <figcaption>
+    <h2>03 Results: three picks</h2>
+    <ul>
+      <li>The answer mirrors the question: "Pili ka na lang." [Just pick one.]</li>
+      <li>Safe choice leads; the alternates are rows, not three equal cards.</li>
+      <li>Sage marks Nugagawen's voice: the pick labels.</li>
+      <li>No orange here: choosing a pick is the primary action.</li>
+      <li>All three picks fit on one screen. Iba naman [Something else] and Baguhin [Change] come after the third pick, when they're relevant.</li>
+    </ul>
+  </figcaption>
+</figure>
+
+<!-- ===================== 03b RESULTS LOADING ===================== -->
+<figure id="results-loading">
+  <div class="phone">
+    <div class="status"><span>9:41</span><span class="sys"><ion-icon name="cellular"></ion-icon><ion-icon name="wifi"></ion-icon><ion-icon name="battery-full"></ion-icon></span></div>
+    <div class="navbar"><span class="back"><ion-icon name="chevron-back"></ion-icon>Hanap</span><span></span></div>
+    <div class="scroll">
+      <div class="sk mt8" style="width:72%;height:32px;margin-top:11px"></div>
+      <div class="t-bodyL ink2" style="margin-top:9px">Hinahanap malapit sa Poblacion…</div>
+      <div class="sk mt24" style="width:112px;height:24px"></div>
+      <div class="sk mt12" style="aspect-ratio:16/9;border-radius:16px"></div>
+      <div class="sk mt12" style="width:62%;height:20px"></div>
+      <div class="sk mt8" style="width:38%;height:14px"></div>
+      <div class="sk mt12" style="width:84%;height:14px"></div>
+      <div class="sk mt12" style="width:70%;height:14px"></div>
+      <div class="rule"></div>
+      <div class="pickrow"><div class="thumb sk"></div><div class="col"><div class="sk" style="width:110px;height:24px"></div><div class="sk mt4" style="width:70%;height:18px"></div><div class="sk mt4" style="width:40%;height:14px"></div><div class="sk mt4" style="width:80%;height:14px"></div></div></div>
+      <div class="rule"></div>
+      <div class="pickrow"><div class="thumb sk"></div><div class="col"><div class="sk" style="width:110px;height:24px"></div><div class="sk mt4" style="width:64%;height:18px"></div><div class="sk mt4" style="width:44%;height:14px"></div><div class="sk mt4" style="width:76%;height:14px"></div></div></div>
+    </div>
+    <div class="homebar"></div>
+  </div>
+  <figcaption>
+    <h2>03b Results: loading</h2>
+    <ul>
+      <li>Skeleton in the exact shape of the results, so nothing jumps when data arrives.</li>
+      <li>One line of real text says what's happening and where.</li>
+      <li>No full-screen spinner. Static blocks when Reduce Motion is on.</li>
+    </ul>
+  </figcaption>
+</figure>
+
+<!-- ===================== 03c RESULTS FEW ===================== -->
+<figure id="results-few">
+  <div class="phone">
+    <div class="status"><span>9:41</span><span class="sys"><ion-icon name="cellular"></ion-icon><ion-icon name="wifi"></ion-icon><ion-icon name="battery-full"></ion-icon></span></div>
+    <div class="navbar"><span class="back"><ion-icon name="chevron-back"></ion-icon>Hanap</span><span>Simula ulit</span></div>
+    <div class="scroll">
+      <div class="t-display mt8">Dalawa lang ang nahanap.</div>
+      <div class="t-bodyL ink2 mt4">Sa loob ng 3 km ng BF Homes, Parañaque, pasok sa Tipid.</div>
+      <div class="btn secondary md inline mt16"><ion-icon name="expand-outline"></ion-icon>Palawakin sa 5 km</div>
+
+      <div class="mt32"><span class="pick"><ion-icon name="checkmark-circle-outline"></ion-icon>Safe choice</span></div>
+      <div class="photo ph-park mt12"><span class="chip-on-photo attr">Photo: sample</span></div>
+      <div class="t-h3 mt12">Liwasang Maliit</div>
+      <div class="t-body ink2 mt4">Park</div>
+      <div class="meta mt8">
+        <span><ion-icon name="star"></ion-icon>4.4 (630)</span>
+        <span><ion-icon name="location-outline"></ion-icon>1.1 km</span>
+        <span><ion-icon name="wallet-outline"></ion-icon>Libre</span>
+      </div>
+      <div class="t-body mt8">Libre, at bukas pa hanggang 9 PM.</div>
+
+      <div class="rule"></div>
+      <div class="pickrow">
+        <div class="thumb ph-books"></div>
+        <div class="col">
+          <span class="pick"><ion-icon name="diamond-outline"></ion-icon>Hidden gem</span>
+          <div class="t-h4">Kubo Bookshop</div>
+          <div class="t-body ink2">Bookstore</div>
+          <div class="meta"><span><ion-icon name="star"></ion-icon>4.8 (54)</span><span><ion-icon name="location-outline"></ion-icon>2.6 km</span><span><ion-icon name="wallet-outline"></ion-icon>Walang info sa presyo</span></div>
+          <div class="t-body mt4">Kaunti pa lang ang nakakaalam.</div>
+        </div>
+      </div>
+      <div class="row-actions mt32">
+        <div class="btn secondary grow">Baguhin</div>
+      </div>
+    </div>
+    <div class="homebar"></div>
+  </div>
+  <figcaption>
+    <h2>03c Results: fewer than three</h2>
+    <ul>
+      <li>Honest count as the headline, with the fix ("Palawakin sa 5 km" [Widen to 5 km]) right under it.</li>
+      <li>The picks that do exist are still shown and still tappable.</li>
+      <li>Unknown price is said plainly ("Walang info sa presyo" [No price info]).</li>
+    </ul>
+  </figcaption>
+</figure>
+
+<!-- ===================== 04 PLACE DETAILS ===================== -->
+<figure id="details">
+  <div class="phone">
+    <div class="scroll bleed">
+      <div class="hero ph-hero">
+        <div class="topscrim"></div>
+        <div class="status light"><span>9:41</span><span class="sys"><ion-icon name="cellular"></ion-icon><ion-icon name="wifi"></ion-icon><ion-icon name="battery-full"></ion-icon></span></div>
+        <div class="roundbtn"><ion-icon name="chevron-back"></ion-icon></div>
+        <span class="chip-on-photo attr">Photo: sample</span>
+        <span class="chip-on-photo count">1 / 8</span>
+      </div>
+      <div class="pad">
+        <div class="mt24"><span class="pick"><ion-icon name="checkmark-circle-outline"></ion-icon>Safe choice</span></div>
+        <div class="t-h1 mt8">Kainan sa Sulok</div>
+        <div class="t-bodyL ink2 mt4">Filipino restaurant</div>
+
+        <div class="facts mt24">
+          <div class="fact"><ion-icon name="time-outline"></ion-icon><span><span class="open">Bukas ngayon.</span> <span class="ink2">Sasara 10:00 PM.</span></span></div>
+          <div class="fact"><ion-icon name="location-outline"></ion-icon><span>850 m, Poblacion, Makati</span></div>
+          <div class="fact"><ion-icon name="wallet-outline"></ion-icon><span>~₱250–600 bawat tao <span class="ink2">(tantya)</span></span></div>
+          <div class="fact"><ion-icon name="star-outline"></ion-icon><span>4.6 mula sa 1,203 review sa Google</span></div>
+          <div class="fact"><ion-icon name="accessibility-outline"></ion-icon><span>May wheelchair-accessible entrance</span></div>
+        </div>
+
+        <div class="why mt24">
+          <div class="t-h4">Bakit ito?</div>
+          <div class="t-bodyL mt8">Pasok sa Sakto budget, mataas ang rating, at 850 m lang mula sa iyo.</div>
+        </div>
+
+        <div class="t-h4 mt32">Tungkol dito</div>
+        <div class="t-bodyL mt8">Lutong-bahay na ulam at merienda sa isang maliit na kainan sa kanto.</div>
+      </div>
+    </div>
+    <div class="actionbar">
+      <div class="btn secondary"><ion-icon name="bookmark-outline"></ion-icon>Save</div>
+      <div class="btn primary grow"><ion-icon name="navigate-outline"></ion-icon>Directions</div>
+    </div>
+    <div class="safe-bottom"><div class="homebar"></div></div>
+  </div>
+  <figcaption>
+    <h2>04 Place details</h2>
+    <ul>
+      <li>First screenful answers: open? how far? how much?</li>
+      <li>Open status is words + icon; green is only a second signal.</li>
+      <li>"Bakit ito?" [Why this?] is the one sage block: Nugagawen explaining itself.</li>
+      <li>Orange is the action that ends the task: Directions.</li>
+    </ul>
+  </figcaption>
+</figure>
+
+</main>
+
+<script>
+// Report which icons failed to load (an unknown Ionicons name renders nothing).
+window.__iconCheck = async () => {
+  await customElements.whenDefined('ion-icon');
+  await new Promise(r => setTimeout(r, 1500));
+  const names = [...new Set([...document.querySelectorAll('ion-icon')].map(i => i.getAttribute('name')))];
+  const missing = names.filter(n => {
+    const el = document.querySelector(`ion-icon[name="${n}"]`);
+    return !el.shadowRoot || !el.shadowRoot.querySelector('svg');
+  });
+  return { checked: names.length, missing };
+};
+</script>
+</body>
+</html>

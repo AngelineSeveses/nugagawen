@@ -1,0 +1,52 @@
+/**
+ * Spacing, radius, size, shadow and motion tokens (docs/03-design-system.md §10).
+ * Kept in one file while the app is small; split per token class if it grows.
+ */
+
+/** 8-point grid with a 4-point step for optical adjustments. */
+export const spacing = {
+  xxs: 4,
+  xs: 8,
+  sm: 12,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 40,
+  xxxl: 48,
+  xxxxl: 64,
+} as const;
+
+export const radius = {
+  sm: 8,
+  md: 12,
+  lg: 16,
+  full: 9999,
+} as const;
+
+/** Minimum sizes. Heights are always minimums so larger text can grow a control. */
+export const size = {
+  touchMin: 44,
+  buttonPrimary: 56,
+  buttonSecondary: 48,
+  input: 52,
+  iconButton: 44,
+  choiceTile: 76,
+  listRow: 56,
+  thumbResult: 72,
+  thumbSaved: 56,
+  screenPadding: 24,
+  icon: 22,
+  iconSmall: 16,
+} as const;
+
+/** The only shadow in the app: round buttons sitting on photos. */
+export const shadows = {
+  onPhoto: '0px 1px 3px rgba(36, 35, 31, 0.16)',
+} as const;
+
+export const motion = {
+  press: 100,
+  fast: 150,
+  base: 250,
+  stagger: 60,
+} as const;
