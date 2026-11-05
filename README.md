@@ -61,11 +61,15 @@ Nugagawen uses **OpenStreetMap** (OSM), the free, volunteer-built map of the wor
 
 To refresh the data (say, every few months), run both scripts again, then rebuild the app. A new data version is copied onto phones automatically on their next launch.
 
-**What OSM does and doesn't have.** OSM has names, categories, locations, opening hours (for many places), cuisines, websites and accessibility info. It has **no star ratings, reviews, photos or menu prices**. So the app picks places by distance, by how well-known a place is (well-known chains and landmarks), and by how complete its listing is (hours, contact details, cuisine). Prices shown are typical estimates per category or chain, always marked "(estimate)".
+**What OSM does and doesn't have.** OSM has names, categories, locations, opening hours (for many places), cuisines, websites and accessibility info. Many places also list a phone number. It has **no star ratings, reviews, photos or menu prices**. So the app picks places by distance, by how well-known a place is (well-known chains and landmarks), and by how complete its listing is (hours, contact details, cuisine). Prices shown are typical estimates per category or chain, always marked "(estimate)".
 
 **Licence.** Map data © OpenStreetMap contributors, under the [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/). The app shows this credit wherever place data appears. `assets/data/places.db` is a derived database, so it's also available under the ODbL.
 
 **Optional: Google Places.** If you ever want ratings and photos, put a Google Places API (New) key in `.env.local` (see `.env.example`) and the app switches to Google. Google requires a billing account and charges beyond its free monthly allowance, so it's off by default.
+
+## First launch
+
+New people see a three-slide intro, then Home offers a five-step guide to the real interface. Each is saved separately once finished or skipped, and Settings > Guides can replay either one. To see them again while developing in the browser, remove `nugagawen:first-run:v1` from local storage.
 
 ## Languages
 
@@ -80,19 +84,21 @@ English (default) and Filipino, switchable any time in Settings → Language / W
 | `npm run web` | Open in a browser, map included (for quick checks; the product is mobile-only) |
 | `npm test` | Unit tests (recommendation rules, opening hours, formatting, route parsing) and searches against the real database in 12 places across the Philippines |
 | `npm run typecheck` | TypeScript check |
+| `npm run lint` | ESLint with Expo's rules |
 | `npx expo-doctor` | Expo dependency and config health check |
 
 ## Where things are
 
 ```
-src/app/          routes only (Expo Router): tabs, location modal, results, place/[id], directions/[id]
+src/app/          routes only (Expo Router): onboarding, tabs, location modal, results, place/[id], directions/[id]
 src/screens/      screen bodies
-src/components/   shared UI (Text, Button, ChoiceGroup, RecommendationItem, …), icons, map/ (phone and web maps)
+src/components/   shared UI (Button, ActivitySelector, RecommendationCard, …), icons, illustrations/, map/ (phone and web maps)
 src/hooks/        screen data: directions, place photos
 src/features/recommendation/   the rules that pick the three places (+ tests)
+src/features/guide/            the first-use guide on Home (+ tests)
 src/services/     place data (OpenStreetMap database; optional Google), routing, photos, map links, location, on-device storage
 scripts/osm/      fetch.mjs + build.mjs: download OSM data and build assets/data/places.db
-src/state/        preferences and saved places (React context, stored on the phone)
+src/state/        preferences, saved places, and what a new person has seen (React context, stored on the phone)
 src/theme/        design tokens: colors, type scale, spacing, radius
 src/localization/ English and Filipino text (en.ts, fil.ts), brand labels, language switching
 docs/             product spec, UX, design system, roadmap

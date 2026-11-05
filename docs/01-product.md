@@ -42,6 +42,10 @@ Nugagawen is **not** a map or a directory. It hands off to the user's maps app f
 
 ### 1.5 Functional requirements
 
+**First launch (v1.2)**
+- FR-0a A three-slide onboarding explains the product once, with Skip, Back, Continue and Get Started. It asks for no permissions. Settings can replay it.
+- FR-0b After onboarding, Home offers a five-step guide to the real interface, saved separately from onboarding. Settings can replay it.
+
 **Discover (Home)**
 - FR-1 The user can choose an activity: Kain (eat), Gala (go out), or Kahit ano (anything). Default: Kahit ano.
 - FR-2 The user can choose a budget: Tipid (₱), Sakto (₱₱), or Sosyal (₱₱₱), each showing an approximate peso range per person. Default: Sakto.
@@ -62,7 +66,7 @@ Nugagawen is **not** a map or a directory. It hands off to the user's maps app f
 - FR-13 With fewer than three matches, the app shows what it found, says plainly that there are fewer options, and offers to widen the radius or change budget/activity.
 
 **Place details**
-- FR-14 Shows photos (with required attribution), name, category, rating and review count with source, estimated budget, address, distance, opening status/hours when available, description when available, and why it was picked.
+- FR-14 Shows photos (with required attribution), name, category, rating and review count with source, estimated budget, address, distance, opening status/hours, description, phone and website, and why it was picked. Anything unavailable is left out, never guessed.
 - FR-15 **Directions** opens the app's directions screen: map, route, travel time, distance and written steps for walking, driving or cycling, with a link to Google Maps.
 - FR-16 The user can save or unsave the place. Saving updates the button immediately and confirms with a short message.
 

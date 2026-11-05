@@ -27,24 +27,23 @@ export interface TripOrigin {
 export function useDirections(placeId: string) {
   const { area, loaded } = usePreferences();
   const [place, setPlace] = useState<Place | undefined>(placeCache.get(placeId));
-  const [placeFailure, setPlaceFailure] = useState<'noPlace' | 'error' | undefined>();
+  const [placeFailure, setPlaceFailure] = useState<{ attempt: number; reason: 'noPlace' | 'error' } | undefined>();
   const [origin, setOrigin] = useState<TripOrigin | undefined>();
   const [originChecked, setOriginChecked] = useState(false);
   const [chosenMode, setChosenMode] = useState<TravelMode | undefined>();
-  const [route, setRoute] = useState<Route | undefined>();
-  const [failure, setFailure] = useState<'noRoute' | 'offline' | 'error' | undefined>();
+  // A route or failure belongs to one request (its `key`), so changing the mode shows as loading by itself.
+  const [routeResult, setRouteResult] = useState<{ key: string; route?: Route; failure?: 'noRoute' | 'offline' | 'error' } | undefined>();
   const [attempt, setAttempt] = useState(0);
 
   // The destination: usually already known from Results; otherwise (Saved, a link) read it.
   useEffect(() => {
     if (place) return;
     let cancelled = false;
-    setPlaceFailure(undefined);
     places
       .getDetails(placeId)
       .then((details) => !cancelled && setPlace(details))
       // Only a real "not found" may say the place is gone. Anything else can be retried.
-      .catch((error: unknown) => !cancelled && setPlaceFailure(error instanceof PlacesError && error.reason === 'notFound' ? 'noPlace' : 'error'));
+      .catch((error: unknown) => !cancelled && setPlaceFailure({ attempt, reason: error instanceof PlacesError && error.reason === 'notFound' ? 'noPlace' : 'error' }));
     return () => {
       cancelled = true;
     };
@@ -76,25 +75,27 @@ export function useDirections(placeId: string) {
   const fromLng = origin?.location.longitude;
   const toLat = place?.location.latitude;
   const toLng = place?.location.longitude;
+  const routeKey = [fromLat, fromLng, toLat, toLng, mode, attempt].join();
+  const current = routeResult?.key === routeKey ? routeResult : undefined;
+  const route = current?.route;
+  const failure = current?.failure;
   useEffect(() => {
     if (fromLat === undefined || fromLng === undefined || toLat === undefined || toLng === undefined || !mode) return;
     let cancelled = false;
-    setRoute(undefined);
-    setFailure(undefined);
     fetchRoute({ latitude: fromLat, longitude: fromLng }, { latitude: toLat, longitude: toLng }, mode)
-      .then((next) => !cancelled && setRoute(next))
+      .then((next) => !cancelled && setRouteResult({ key: routeKey, route: next }))
       .catch((error: unknown) => {
         if (cancelled) return;
         const reason = error instanceof RoutingError ? error.reason : 'unknown';
-        setFailure(reason === 'noRoute' ? 'noRoute' : reason === 'offline' ? 'offline' : 'error');
+        setRouteResult({ key: routeKey, failure: reason === 'noRoute' ? 'noRoute' : reason === 'offline' ? 'offline' : 'error' });
       });
     return () => {
       cancelled = true;
     };
-  }, [fromLat, fromLng, toLat, toLng, mode, attempt]);
+  }, [fromLat, fromLng, toLat, toLng, mode, routeKey]);
 
   let status: DirectionsStatus = 'finding';
-  if (placeFailure) status = placeFailure;
+  if (placeFailure?.attempt === attempt) status = placeFailure.reason;
   else if (originChecked && !origin) status = 'noOrigin';
   else if (failure) status = failure;
   else if (route) status = 'ready';

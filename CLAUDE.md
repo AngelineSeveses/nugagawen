@@ -34,12 +34,15 @@ The original master brief (from the user, 4 Nov 2026) is summarised across these
 - **Photos (user decision, 4 Nov 2026):** free photos come from Wikimedia Commons for places whose OSM listing links to it (`places.photo`, `src/services/photos/wikimedia.ts`), loaded on demand; always show the photographer and licence. Every place also has "See photos on Google Maps" (a plain link, no API). Never use stock or generated images. Live check: `node scripts/check-photos.mjs`. Foursquare is not used: its photos are a paid Premium endpoint (foursquare.com/pricing, checked Nov 2026), which breaks the no-paid-APIs decision.
 - **Maps and directions (user decision, Nov 2026):** MapLibre React Native draws the map (`src/components/map/`; `maplibre-gl` for the web preview only). Tiles are OpenFreeMap by default, or MapTiler if `EXPO_PUBLIC_MAPTILER_KEY` is set (`src/config.ts`). Routes and written directions come from the public FOSSGIS OSRM server (`src/services/routing/`): at most one request per second, always credit OSRM and OpenStreetMap and link "Fix the map". It's for light use, so a public launch needs its own routing server. There are no jeepney or bus routes and no traffic: say so, and keep the plain Google Maps link.
 - **MapLibre is native code, so it doesn't run in Expo Go**; `src/components/map/place-map.tsx` shows a notice there instead. `npm run go` starts the server for Expo Go; `npx expo start` starts it for a development build (`eas.json`). The browser preview doesn't prove the phone map works: only a development build on a device or simulator does.
+- **v1.2 design (user decision, Nov 2026):** 16 side padding on every screen; tokens only (see the Revision 4 block in `docs/03-design-system.md`). Keep `#6B655C` and `#965A12`: the brief's `#777168` and `#A56617` fail AA on cream, and the same brief asks for AA. Original flat illustrations live in `src/components/illustrations/`; never present them, or anything generated, as photos of real places.
+- **First launch (user decision, Nov 2026):** onboarding (`src/screens/onboarding.tsx`) and the Home guide (`src/features/guide/`) are separate, each saved in `src/state/first-run.tsx`, and replayable from Settings. No permission requests in onboarding. `Stack.Protected` in `src/app/_layout.tsx` decides which screens exist.
+- **Hide what's unknown.** Unknown hours, prices, ratings or contact details are left out, never guessed or labelled "none".
 
 # Working in the code
 
 - Read `AGENTS.md` (Expo SDK 58 rules: check versioned docs or installed type definitions before using an Expo API; install with `npx expo install`).
 - Tokens only from `@/theme`; text only through `@/components/text`; screens import components.
-- Before calling anything done: `npm run typecheck`, `npm test`, and look at it running (`app-web` config in `.claude/launch.json` for a quick browser check; Expo Go on a phone for the real thing).
+- Before calling anything done: `npm run typecheck`, `npm test`, `npm run lint`, and look at it running (`app-web` config in `.claude/launch.json` for a quick browser check; Expo Go on a phone for the real thing).
 
 # Tooling
 

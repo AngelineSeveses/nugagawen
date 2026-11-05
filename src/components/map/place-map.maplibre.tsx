@@ -73,5 +73,5 @@ export function PlaceMapNative({ destination, origin, line, interactive = true, 
 }
 
 const styles = StyleSheet.create({
-  frame: { overflow: 'hidden', borderRadius: radius.md, borderCurve: 'continuous', backgroundColor: colors.skeleton },
+  frame: { overflow: 'hidden', borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.skeleton },
 });

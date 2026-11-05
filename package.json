@@ -1,6 +1,6 @@
 {
   "name": "nugagawen",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
@@ -37,6 +37,8 @@
     "@types/geojson": "^7946.0.16",
     "@types/jest": "30.0.0",
     "@types/react": "~19.3.0",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~58.0.4",
     "jest": "~30.5.2",
     "jest-expo": "~58.0.14",
     "typescript": "~6.0.3"

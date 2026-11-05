@@ -15,6 +15,7 @@ describe('cleanArtist', () => {
   it('keeps only the readable name from Commons HTML', () => {
     expect(cleanArtist('<a href="//commons.wikimedia.org/wiki/User:Ramon">Ramon F. Velasquez</a>')).toBe('Ramon F. Velasquez');
     expect(cleanArtist('')).toBeUndefined();
+    expect(cleanArtist('<a>RioHondo</a> (<a>talk</a>) (Uploads)')).toBe('RioHondo');
   });
 });
 

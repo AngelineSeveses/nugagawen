@@ -39,6 +39,8 @@ export function cleanArtist(html: string | undefined): string | undefined {
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&#0?39;/g, "'")
+    // Wiki signature links such as "(talk)" or "(Uploads)" aren't part of the name.
+    .replace(/\((talk|uploads?|contribs?|contributions)\b[^)]*\)/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
   if (!text) return undefined;

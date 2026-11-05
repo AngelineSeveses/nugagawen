@@ -105,5 +105,5 @@ export function PlaceMap({ destination, origin, line, interactive = true, access
 }
 
 const styles = StyleSheet.create({
-  frame: { overflow: 'hidden', borderRadius: radius.md, borderCurve: 'continuous', backgroundColor: colors.skeleton },
+  frame: { overflow: 'hidden', borderRadius: radius.lg, borderCurve: 'continuous', backgroundColor: colors.skeleton },
 });

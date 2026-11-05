@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Linking, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
 import { ChoiceGroup } from '@/components/choice-group';
@@ -14,16 +14,14 @@ import {
   BoatIcon,
   CarIcon,
   FlagCheckeredIcon,
-  MapPinIcon,
   NavigationArrowIcon,
   PersonSimpleWalkIcon,
-  WarningIcon,
-  WifiSlashIcon,
   type Icon,
 } from '@/components/icons';
 import { PlaceMap } from '@/components/map/place-map';
 import { Divider, Skeleton } from '@/components/misc';
-import { StateMessage } from '@/components/state-message';
+import { LocationArt } from '@/components/illustrations';
+import { EmptyState, ErrorState } from '@/components/state-message';
 import { Text } from '@/components/text';
 import { useDirections } from '@/hooks/use-directions';
 import { useCopy } from '@/localization';
@@ -87,25 +85,25 @@ export function DirectionsScreen() {
 
   let body: React.ReactNode;
   if (status === 'noPlace') {
-    body = <StateMessage icon={WarningIcon} title={copy.place.unavailable} />;
+    body = <ErrorState title={copy.place.unavailable} />;
   } else if (status === 'noOrigin') {
     body = (
-      <StateMessage icon={MapPinIcon} title={copy.directions.noOriginTitle} body={copy.directions.noOriginBody}>
+      <EmptyState art={<LocationArt size={120} />} title={copy.directions.noOriginTitle} body={copy.directions.noOriginBody}>
         <Button title={copy.discover.locationUnset} onPress={() => router.push('/location')} />
-      </StateMessage>
+      </EmptyState>
     );
   } else if (status === 'offline' || status === 'error' || status === 'noRoute') {
     body = (
       <View>
         {modePicker}
-        <StateMessage
-          icon={status === 'offline' ? WifiSlashIcon : WarningIcon}
+        <ErrorState
+          offline={status === 'offline'}
           title={status === 'noRoute' ? copy.directions.noRouteTitle : copy.directions.errorTitle}
           body={status === 'noRoute' ? copy.directions.noRouteBody : status === 'offline' ? copy.results.offlineBody : copy.directions.errorBody}
         >
           {status === 'noRoute' ? null : <Button variant="secondary" title={copy.results.retry} onPress={retry} />}
           {googleButton}
-        </StateMessage>
+        </ErrorState>
       </View>
     );
   } else if (status === 'ready' && route && place) {
@@ -169,11 +167,13 @@ export function DirectionsScreen() {
 
         <View style={styles.section}>
           <Text variant="caption" color="inkSecondary">
-            {copy.directions.credit}{' '}
-            <Text variant="caption" color="inkSecondary" accessibilityRole="link" onPress={() => Linking.openURL(FIX_THE_MAP_URL)} style={styles.link}>
+            {copy.directions.credit}
+          </Text>
+          <Pressable accessibilityRole="link" accessibilityLabel={copy.directions.fixMap} onPress={() => Linking.openURL(FIX_THE_MAP_URL)} style={styles.fixMap}>
+            <Text variant="caption" color="inkSecondary" style={styles.link}>
               {copy.directions.fixMap}
             </Text>
-          </Text>
+          </Pressable>
         </View>
       </View>
     );
@@ -225,6 +225,8 @@ const styles = StyleSheet.create({
   gapSm: { marginTop: spacing.sm },
   steps: { marginTop: spacing.sm },
   step: { flexDirection: 'row', gap: spacing.sm },
-  stepIcon: { paddingTop: 1, width: 24 },
+  stepIcon: { paddingTop: 1, width: spacing.lg },
   link: { textDecorationLine: 'underline' },
+  // Small text, but still a full-size tap target.
+  fixMap: { alignSelf: 'flex-start', minHeight: size.touchMin, justifyContent: 'center' },
 });

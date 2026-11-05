@@ -3,12 +3,13 @@
  * under which licence, close with the X or the system back gesture.
  */
 import { Image } from 'expo-image';
-import { useEffect, useRef, useState } from 'react';
-import { FlatList, Linking, Modal, Pressable, StyleSheet, useWindowDimensions, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { useRef, useState } from 'react';
+import { FlatList, Linking, Modal, StyleSheet, useWindowDimensions, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCopy } from '@/localization';
-import { colors, radius, size, spacing } from '@/theme';
+import { colors, size, spacing } from '@/theme';
 import type { PlacePhoto } from '@/types';
+import { IconButton } from './icon-button';
 import { XIcon } from './icons';
 import { Text } from './text';
 
@@ -27,9 +28,12 @@ export function PhotoViewer({ photos, placeName, openAt, onClose }: PhotoViewerP
   const [index, setIndex] = useState(openAt ?? 0);
   const list = useRef<FlatList<PlacePhoto>>(null);
 
-  useEffect(() => {
+  // Opening at another photo: adjust during render, as React recommends, instead of in an effect.
+  const [lastOpenAt, setLastOpenAt] = useState(openAt);
+  if (openAt !== lastOpenAt) {
+    setLastOpenAt(openAt);
     if (openAt !== undefined) setIndex(openAt);
-  }, [openAt]);
+  }
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const next = Math.round(e.nativeEvent.contentOffset.x / width);
@@ -66,9 +70,7 @@ export function PhotoViewer({ photos, placeName, openAt, onClose }: PhotoViewerP
           <Text variant="label" style={styles.light} accessibilityLiveRegion="polite">
             {copy.place.photoCount(index + 1, photos.length)}
           </Text>
-          <Pressable accessibilityRole="button" accessibilityLabel={copy.place.closePhotos} onPress={onClose} hitSlop={8} style={styles.close}>
-            <XIcon size={22} color={colors.onInk} weight="regular" />
-          </Pressable>
+          <IconButton icon={XIcon} label={copy.place.closePhotos} variant="onDark" onPress={onClose} />
         </View>
 
         {current ? (
@@ -107,7 +109,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: size.screenPadding,
   },
-  close: { width: size.iconButton, height: size.iconButton, alignItems: 'center', justifyContent: 'center', borderRadius: radius.full },
   bottom: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: size.screenPadding, paddingTop: spacing.md, gap: spacing.xxs, backgroundColor: colors.scrim },
   light: { color: colors.onInk },
   link: { textDecorationLine: 'underline' },

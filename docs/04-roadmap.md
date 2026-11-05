@@ -207,6 +207,7 @@ Every dependency gets explained when it's added. Most of these come with the Exp
 | `@maplibre/maplibre-react-native` | The interactive map on phones | Nov 2026 |
 | `maplibre-gl` (v5; v6 doesn't bundle with Metro) | The same map in the web preview only | Nov 2026 |
 | `expo-dev-client` | Lets a development build connect to the dev server, as Expo Go does | Nov 2026 |
+| `eslint`, `eslint-config-expo` (dev only) | Linting: the `lint` script existed but couldn't run without them. Never shipped in the app | v1.2 |
 
 **Deliberately not used in MVP:** NativeWind, Firebase, `react-native-maps`, Redux/Zustand, any UI kit.
 

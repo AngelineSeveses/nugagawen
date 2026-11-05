@@ -1,16 +1,17 @@
-import { ActivityIndicator, Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
-import { colors, radius, size, spacing } from '@/theme';
+import type { ComponentRef, Ref } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, type StyleProp, type View, type ViewStyle } from 'react-native';
+import { borderWidth, colors, radius, size, spacing } from '@/theme';
 import type { Icon, IconWeight } from './icons';
 import { Text } from './text';
 
-type Variant = 'primary' | 'secondary' | 'ghost';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'dark';
 
 export interface ButtonProps {
   title: string;
   onPress?: () => void;
-  /** primary = the one orange action on a screen; secondary = outlined; ghost = text only. */
+  /** primary = the one orange action on a screen; secondary = outlined; ghost = text only; dark = a main action inside a card or tooltip. */
   variant?: Variant;
-  /** lg (56 pt) for primary actions, md (48 pt) otherwise. */
+  /** lg (52 tall) for primary actions, md (48 tall) otherwise. */
   size?: 'md' | 'lg';
   icon?: Icon;
   /** `fill` for an active state (e.g. Saved). */
@@ -22,12 +23,15 @@ export interface ButtonProps {
   accessibilityLabel?: string;
   /** Layout only (margins, flex). Colors come from the variant. */
   style?: StyleProp<ViewStyle>;
+  /** Lets a parent move keyboard focus to this button. */
+  ref?: Ref<ComponentRef<typeof View>>;
 }
 
 const foreground: Record<Variant, string> = {
   primary: colors.onAccent,
   secondary: colors.ink,
   ghost: colors.ink,
+  dark: colors.onInk,
 };
 
 export function Button({
@@ -42,15 +46,18 @@ export function Button({
   accessibilityHint,
   accessibilityLabel,
   style,
+  ref,
 }: ButtonProps) {
   const inactive = disabled || loading;
   const fg = foreground[variant];
   return (
     <Pressable
+      ref={ref}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? title}
       accessibilityHint={accessibilityHint}
-      accessibilityState={{ disabled: inactive, busy: loading }}
+      aria-disabled={inactive}
+      aria-busy={loading}
       disabled={inactive}
       onPress={onPress}
       style={({ pressed }) => [
@@ -82,17 +89,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.button,
     borderCurve: 'continuous',
-    borderWidth: 1,
+    borderWidth: borderWidth.default,
     borderColor: 'transparent',
   },
   lg: { minHeight: size.buttonPrimary },
-  // Smaller side padding on medium buttons so two fit side by side without wrapping.
-  md: { minHeight: size.buttonSecondary, paddingHorizontal: spacing.md },
+  md: { minHeight: size.buttonSecondary },
   primary: { backgroundColor: colors.accent },
-  secondary: { backgroundColor: colors.surface, borderColor: colors.hairline },
+  dark: { backgroundColor: colors.ink },
+  secondary: { backgroundColor: colors.surface, borderColor: colors.border },
   ghost: { backgroundColor: 'transparent', paddingHorizontal: spacing.xs, minHeight: size.touchMin },
   // Feedback on press-in, not release: slight dim and shrink.
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },

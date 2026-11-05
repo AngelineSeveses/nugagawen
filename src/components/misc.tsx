@@ -4,11 +4,12 @@
 import { Image } from 'expo-image';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
+import Animated, { useAnimatedStyle, useReducedMotion, withRepeat, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BRAND_NAME, useCopy } from '@/localization';
 import { dataSource } from '@/config';
-import { colors, radius, size, spacing } from '@/theme';
-import { CaretRightIcon, InfoIcon, MapPinIcon, type Icon } from './icons';
+import { borderWidth, colors, radius, size, spacing } from '@/theme';
+import { CaretRightIcon, InfoIcon, type Icon } from './icons';
 import { Text } from './text';
 
 const LOGO_RATIO = 1767 / 315;
@@ -31,7 +32,7 @@ export function Logo({ height = 24, color = colors.ink }: { height?: number; col
 export function ActionBar({ children, safeArea = true }: { children: ReactNode; safeArea?: boolean }) {
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.actionBar, { paddingBottom: safeArea ? Math.max(insets.bottom, spacing.md) : spacing.md }]}>
+    <View style={[styles.actionBar, { paddingBottom: safeArea ? Math.max(insets.bottom, spacing.sm) : spacing.sm }]}>
       {children}
     </View>
   );
@@ -53,7 +54,7 @@ export function FactRow({ icon: RowIcon, children }: { icon: Icon; children: Rea
   );
 }
 
-/** Static loading placeholder (no shimmer, so nothing moves for Reduce Motion users). */
+/** Loading placeholder with a slow, gentle pulse. It stays still when Reduce Motion is on. */
 export function Skeleton({
   width = '100%',
   height = 16,
@@ -65,29 +66,11 @@ export function Skeleton({
   borderRadius?: number;
   style?: StyleProp<ViewStyle>;
 }) {
-  return <View style={[{ width, height, borderRadius, backgroundColor: colors.skeleton }, style]} />;
-}
-
-/** The Discover location line: tap to change where to search. */
-export function LocationRow({ title, subtitle, hint, onPress }: { title: string; subtitle: string; hint: string; onPress: () => void }) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${title}. ${subtitle}`}
-      accessibilityHint={hint}
-      onPress={onPress}
-      style={({ pressed }) => [styles.locationRow, pressed && styles.pressedRow]}
-    >
-      <MapPinIcon size={size.icon} color={colors.ink} weight="regular" />
-      <View style={styles.flex}>
-        <Text variant="bodyLargeStrong">{title}</Text>
-        <Text variant="body" color="inkSecondary">
-          {subtitle}
-        </Text>
-      </View>
-      <CaretRightIcon size={18} color={colors.inkSecondary} weight="regular" />
-    </Pressable>
-  );
+  const reduceMotion = useReducedMotion();
+  const pulse = useAnimatedStyle(() => ({
+    opacity: reduceMotion ? 1 : withRepeat(withTiming(0.55, { duration: 900 }), -1, true),
+  }));
+  return <Animated.View style={[{ width, height, borderRadius, backgroundColor: colors.skeleton }, pulse, style]} />;
 }
 
 /** Data source credit, required by the OpenStreetMap licence wherever its data is shown. */
@@ -162,7 +145,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.xs,
     paddingHorizontal: size.screenPadding,
-    paddingTop: spacing.md,
+    paddingTop: spacing.sm,
     backgroundColor: colors.paper,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.hairline,
@@ -171,23 +154,16 @@ const styles = StyleSheet.create({
   fact: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
   factIcon: { paddingTop: 2 },
   factText: { flex: 1 },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    minHeight: size.listRow,
-    marginHorizontal: -spacing.xs,
-    paddingHorizontal: spacing.xs,
-    borderRadius: radius.md,
-  },
   pressedRow: { backgroundColor: colors.pressed },
   notice: { flexDirection: 'row', gap: spacing.xs, alignItems: 'flex-start' },
   group: { gap: spacing.xs },
   groupTitle: { paddingHorizontal: spacing.xxs },
   groupBody: {
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderCurve: 'continuous',
+    borderWidth: borderWidth.default,
+    borderColor: colors.border,
     paddingHorizontal: spacing.md,
   },
   settingsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: size.listRow, paddingVertical: spacing.sm },

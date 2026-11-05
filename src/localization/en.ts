@@ -76,7 +76,7 @@ function instructionEn(step: RouteStep, destination?: string): string {
 export const en = {
   tagline: 'Less deciding. More doing.',
   tabs: {
-    discover: 'Discover',
+    home: 'Home',
     saved: 'Saved',
     settings: 'Settings',
   },
@@ -85,7 +85,7 @@ export const en = {
     support: "Let's find something for you.",
     activityQuestion: 'What are you in the mood for?',
     budgetQuestion: 'Budget per person',
-    cta: 'Find my three',
+    cta: 'Discover',
     locationSet: (label: string) => `Near ${label}`,
     locationRadius: (km: number) => `Within ${km} km`,
     locationUnset: 'Set your location',
@@ -93,7 +93,7 @@ export const en = {
     changeLocation: 'Change location',
     surpriseTitle: 'Feeling spontaneous?',
     surpriseBody: 'Skip the planning. Let us surprise you.',
-    surpriseCta: 'Surprise me',
+    surpriseCta: 'Surprise Me',
   },
   /** Shown under the brand labels Kain, Gala and Kahit Ano. */
   activityDescription: {
@@ -146,6 +146,10 @@ export const en = {
     offlineBody: 'No internet connection. Check it and try again.',
     errorBody: 'Something went wrong with the search. Try again.',
     retry: 'Try again',
+    seeDetails: 'See details',
+    ratedA11y: (rating: string) => `Rated ${rating}.`,
+    awayA11y: (distance: string) => `${distance} away.`,
+    saveA11y: (name: string) => `Save ${name}`,
   },
   surprise: {
     loading: (area: string) => `Picking something near ${area}…`,
@@ -153,9 +157,9 @@ export const en = {
     noneBody: 'Try a wider search or a different budget.',
   },
   pick: {
-    safe: 'Safe choice',
-    surprise: 'Surprise me',
-    gem: 'Hidden gem',
+    safe: 'Safe Choice',
+    surprise: 'Surprise Me',
+    gem: 'Hidden Gem',
   } satisfies Record<PickKind, string>,
   reasons: {
     safeRatedClose: 'Highly rated and close by.',
@@ -208,6 +212,11 @@ export const en = {
     whyTitle: 'Why this?',
     aboutTitle: 'About',
     hoursTitle: 'Hours',
+    away: (distance: string) => `${distance} away`,
+    addressTitle: 'Address',
+    mapTitle: 'Map',
+    contactTitle: 'Contact',
+    callA11y: (phone: string) => `Call ${phone}`,
     photosTitle: 'Photos',
     photoCredit: (author?: string, license?: string) => `Photo: ${[author, license].filter(Boolean).join(', ')}`,
     photoCount: (i: number, n: number) => `${i} of ${n}`,
@@ -303,7 +312,10 @@ export const en = {
   settings: {
     title: 'Settings',
     language: 'Language',
-    searchSection: 'Search',
+    preferencesSection: 'Preferences',
+    activity: 'What you usually want',
+    budget: 'Usual budget per person',
+    searchSection: 'Search area',
     distance: 'Search distance',
     location: 'Location',
     locationNone: 'Not set',
@@ -320,6 +332,10 @@ export const en = {
     clearConfirmBody: "This can't be undone.",
     clearConfirmAction: 'Clear',
     cancel: 'Cancel',
+    guidesSection: 'Guides',
+    replayOnboarding: 'Replay the intro',
+    replayGuide: 'Replay the Home guide',
+    accessibilitySection: 'Accessibility',
     aboutSection: 'About',
     dataSource: 'Place data',
     dataGoogle: 'Google Places',
@@ -331,6 +347,48 @@ export const en = {
     accessibility:
       'Text size and motion follow your phone settings. Turn on larger text or Reduce Motion there and Nugagawen adapts.',
     version: 'Version',
+  },
+  onboarding: {
+    slides: [
+      {
+        title: 'Not sure where to go?',
+        body: "Choose what you're in the mood for. Nugagawen helps you find places worth exploring.",
+        art: 'Illustration: a signpost pointing to a bowl of rice and to a palm tree by the hills.',
+      },
+      {
+        title: 'Set your budget and location.',
+        body: 'Tell us how much you want to spend and where you want to explore.',
+        art: 'Illustration: a map with a location pin beside a stack of peso coins.',
+      },
+      {
+        title: 'Get three recommendations.',
+        body: 'Explore your Safe Choice, Surprise Me, and Hidden Gem.',
+        art: 'Illustration: three cards, marked with a check, a die and a gem.',
+      },
+    ],
+    skip: 'Skip',
+    back: 'Back',
+    next: 'Continue',
+    done: 'Get Started',
+    step: (step: number, total: number) => `Step ${step} of ${total}`,
+  },
+  guide: {
+    offerTitle: 'Want a quick tour?',
+    offerBody: 'See how Home works in five short steps.',
+    offerStart: 'Show me',
+    offerDismiss: 'Not now',
+    steps: {
+      activity: { title: 'Choose your activity', body: 'Start by choosing what you want to do. Pick Kain, Gala, or Kahit Ano.' },
+      budget: { title: 'Set your budget', body: 'Choose a budget that feels right for you.' },
+      location: { title: 'Select your location', body: 'Discover places near your current location or choose another area.' },
+      discover: { title: 'Discover recommendations', body: 'Tap Discover to find three recommendations based on your preferences.' },
+      explore: { title: 'Explore places', body: 'Compare your choices, explore place details, save your favorites, or get directions.' },
+    },
+    next: 'Next',
+    back: 'Back',
+    skip: 'Skip Guide',
+    done: 'Finish',
+    step: (step: number, total: number) => `Step ${step} of ${total}`,
   },
   data: {
     /** Required by the OpenStreetMap licence (ODbL) wherever its data is shown. */
