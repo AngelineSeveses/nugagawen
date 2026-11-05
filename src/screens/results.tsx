@@ -1,22 +1,40 @@
 import { Stack, useRouter } from 'expo-router';
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AccessibilityInfo, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
-import { ArrowsClockwiseIcon, ArrowsOutIcon, MapPinIcon, WarningIcon, WifiSlashIcon } from '@/components/icons';
-import { DataAttribution, Divider, Skeleton } from '@/components/misc';
-import { RecommendationItem } from '@/components/recommendation-item';
-import { StateMessage } from '@/components/state-message';
+import { ArrowsClockwiseIcon, ArrowsOutIcon } from '@/components/icons';
+import { LocationArt, NoResultsArt } from '@/components/illustrations';
+import { DataAttribution, Skeleton } from '@/components/misc';
+import { RecommendationCard } from '@/components/recommendation-card';
+import { EmptyState, ErrorState } from '@/components/state-message';
 import { Text } from '@/components/text';
 import { useCopy } from '@/localization';
 import { pickThree } from '@/features/recommendation/pick';
 import { placeCache, places, PlacesError } from '@/services/places';
 import { RADIUS_STEPS, usePreferences } from '@/state/preferences';
-import { colors, motion, radius, size, spacing } from '@/theme';
+import { borderWidth, colors, motion, radius, size, spacing } from '@/theme';
 import type { Place, Recommendation } from '@/types';
 
-type Status = { kind: 'loading' } | { kind: 'ready' } | { kind: 'error'; offline: boolean };
+/** The result of one search. It belongs to a `key`, so a new search shows as loading without any extra step. */
+type Outcome = { key: string; kind: 'ready' } | { key: string; kind: 'error'; offline: boolean };
+
+function CardSkeleton({ lead }: { lead?: boolean }) {
+  return (
+    <View style={styles.skeletonCard}>
+      {lead ? <Skeleton height={undefined} borderRadius={0} style={styles.skeletonPhoto} /> : null}
+      <View style={styles.skeletonBody}>
+        {lead ? null : <Skeleton width={size.thumb} height={size.thumb} borderRadius={radius.md} />}
+        <View style={styles.skeletonText}>
+          <Skeleton width={104} height={24} />
+          <Skeleton width="70%" height={18} />
+          <Skeleton width="45%" height={14} />
+        </View>
+      </View>
+    </View>
+  );
+}
 
 function ResultsSkeleton({ areaLabel }: { areaLabel: string }) {
   const copy = useCopy();
@@ -26,29 +44,16 @@ function ResultsSkeleton({ areaLabel }: { areaLabel: string }) {
       <Text variant="bodyLarge" color="inkSecondary" style={styles.subtitle}>
         {copy.results.loading(areaLabel)}
       </Text>
-      <Skeleton width={112} height={24} style={styles.gapLg} />
-      <Skeleton height={undefined} borderRadius={radius.lg} style={[styles.gapSm, { aspectRatio: 16 / 9 }]} />
-      <Skeleton width="60%" height={20} style={styles.gapSm} />
-      <Skeleton width="40%" height={14} style={styles.gapXs} />
-      <Skeleton width="85%" height={14} style={styles.gapSm} />
-      {[0, 1].map((i) => (
-        <Fragment key={i}>
-          <Divider />
-          <View style={styles.skeletonRow}>
-            <Skeleton width={size.thumbResult} height={size.thumbResult} borderRadius={radius.md} />
-            <View style={styles.flex}>
-              <Skeleton width={110} height={24} />
-              <Skeleton width="70%" height={18} style={styles.gapXs} />
-              <Skeleton width="45%" height={14} style={styles.gapXs} />
-            </View>
-          </View>
-        </Fragment>
-      ))}
+      <View style={styles.picks}>
+        <CardSkeleton lead />
+        <CardSkeleton />
+        <CardSkeleton />
+      </View>
     </View>
   );
 }
 
-/** Screen 03: three picks. The Safe choice leads; the alternatives follow as rows. */
+/** Screen 03: three picks. The Safe Choice leads; the others follow, each in the same card. */
 export function ResultsScreen() {
   const copy = useCopy();
   const router = useRouter();
@@ -56,7 +61,7 @@ export function ResultsScreen() {
   const prefs = usePreferences();
   const { area, activity, budget, radiusKm } = prefs;
 
-  const [status, setStatus] = useState<Status>({ kind: 'loading' });
+  const [outcome, setOutcome] = useState<Outcome | undefined>();
   const [pool, setPool] = useState<Place[]>([]);
   const [picks, setPicks] = useState<Recommendation[]>([]);
   const [shown, setShown] = useState<Set<string>>(new Set());
@@ -70,10 +75,12 @@ export function ResultsScreen() {
   const lng = area?.location.longitude;
 
   // One search per visit (and per retry / radius change). "Show others" reuses this pool.
+  const searchKey = [lat, lng, radiusMeters, activity, budget, attempt].join();
+  const current = outcome?.key === searchKey ? outcome : undefined;
+
   useEffect(() => {
     if (lat === undefined || lng === undefined) return;
     let cancelled = false;
-    setStatus({ kind: 'loading' });
     places
       .searchNearby({ center: { latitude: lat, longitude: lng }, radiusMeters, activity })
       .then((list) => {
@@ -85,15 +92,15 @@ export function ResultsScreen() {
         setShown(new Set(first.map((p) => p.place.id)));
         setRound(0);
         setExhausted(false);
-        setStatus({ kind: 'ready' });
+        setOutcome({ key: searchKey, kind: 'ready' });
       })
       .catch((error: unknown) => {
-        if (!cancelled) setStatus({ kind: 'error', offline: error instanceof PlacesError && error.reason === 'offline' });
+        if (!cancelled) setOutcome({ key: searchKey, kind: 'error', offline: error instanceof PlacesError && error.reason === 'offline' });
       });
     return () => {
       cancelled = true;
     };
-  }, [lat, lng, radiusMeters, activity, budget, attempt]);
+  }, [lat, lng, radiusMeters, activity, budget, searchKey]);
 
   const showOthers = () => {
     if (!area) return;
@@ -122,31 +129,32 @@ export function ResultsScreen() {
   let body: React.ReactNode;
   if (!area) {
     body = (
-      <StateMessage icon={MapPinIcon} title={copy.discover.locationUnset} body={copy.discover.locationUnsetHint}>
+      <EmptyState art={<LocationArt size={120} />} title={copy.discover.locationUnset} body={copy.discover.locationUnsetHint}>
         <Button title={copy.location.confirm} onPress={() => router.replace({ pathname: '/location', params: { next: 'results' } })} />
-      </StateMessage>
+      </EmptyState>
     );
-  } else if (status.kind === 'loading') {
+  } else if (!current) {
     body = <ResultsSkeleton areaLabel={area.label} />;
-  } else if (status.kind === 'error') {
+  } else if (current.kind === 'error') {
     body = (
-      <StateMessage
-        icon={status.offline ? WifiSlashIcon : WarningIcon}
+      <ErrorState
+        offline={current.offline}
         title={copy.results.errorTitle}
-        body={status.offline ? copy.results.offlineBody : copy.results.errorBody}
+        body={current.offline ? copy.results.offlineBody : copy.results.errorBody}
       >
         <Button variant="secondary" title={copy.results.retry} onPress={() => setAttempt((a) => a + 1)} />
-      </StateMessage>
+      </ErrorState>
     );
   } else if (picks.length === 0) {
     body = (
-      <StateMessage
+      <EmptyState
+        art={<NoResultsArt size={120} />}
         title={copy.results.noneTitle}
         body={`${copy.results.noneBody(radiusKm)}${nextRadius ? '' : ` ${copy.results.noneAtMax}`}`}
       >
         {widen && nextRadius ? <Button title={copy.results.widen(nextRadius)} icon={ArrowsOutIcon} onPress={widen} /> : null}
         <Button variant="secondary" title={copy.results.change} onPress={() => router.back()} />
-      </StateMessage>
+      </EmptyState>
     );
   } else {
     // "Only two found" describes the first search. After "Show others", a short list just means we ran out.
@@ -156,9 +164,12 @@ export function ResultsScreen() {
         <Text variant="display" accessibilityRole="header">
           {few ? copy.results.fewTitle(picks.length) : copy.results.title}
         </Text>
-        <Text variant="bodyLarge" color="inkSecondary" style={styles.subtitle}>
-          {few ? copy.results.fewBody(radiusKm) : copy.results.subtitle(area.label, budget)}
-        </Text>
+        <View style={styles.summary}>
+          <Text variant="body" color="inkSecondary" style={styles.flex}>
+            {few ? copy.results.fewBody(radiusKm) : copy.results.subtitle(area.label, budget)}
+          </Text>
+          <Button variant="ghost" title={copy.results.change} onPress={() => router.back()} style={styles.changeButton} />
+        </View>
         {few && widen && nextRadius ? (
           <Button variant="secondary" icon={ArrowsOutIcon} title={copy.results.widen(nextRadius)} onPress={widen} style={styles.widen} />
         ) : null}
@@ -170,8 +181,7 @@ export function ResultsScreen() {
               // The one orchestrated moment: first results arrive in sequence; "Show others" just cross-fades.
               entering={round === 0 ? FadeIn.duration(motion.base).delay(index * motion.stagger) : FadeIn.duration(motion.fast)}
             >
-              {index > 0 ? <Divider /> : null}
-              <RecommendationItem recommendation={rec} variant={index === 0 ? 'lead' : 'row'} onPress={() => open(rec)} />
+              <RecommendationCard recommendation={rec} variant={index === 0 ? 'lead' : 'row'} onPress={() => open(rec)} />
             </Animated.View>
           ))}
         </View>
@@ -186,12 +196,7 @@ export function ResultsScreen() {
             ) : null}
           </View>
         ) : null}
-        <View style={styles.actions}>
-          {!few && !exhausted ? (
-            <Button variant="secondary" icon={ArrowsClockwiseIcon} title={copy.results.shuffle} onPress={showOthers} style={styles.flex} />
-          ) : null}
-          <Button variant="secondary" title={copy.results.change} onPress={() => router.back()} style={styles.flex} />
-        </View>
+        {!few && !exhausted ? <Button variant="secondary" icon={ArrowsClockwiseIcon} title={copy.results.shuffle} onPress={showOthers} style={styles.shuffle} /> : null}
       </View>
     );
   }
@@ -203,9 +208,9 @@ export function ResultsScreen() {
           headerRight: () => <Button variant="ghost" title={copy.results.startOver} onPress={startOver} />,
         }}
       />
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.lg }]}>
         {body}
-        {status.kind === 'ready' ? <DataAttribution style={styles.notice} /> : null}
+        {current?.kind === 'ready' ? <DataAttribution style={styles.notice} /> : null}
       </ScrollView>
     </View>
   );
@@ -216,13 +221,23 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: size.screenPadding, paddingTop: spacing.xs },
   flex: { flex: 1 },
   subtitle: { marginTop: spacing.xxs },
-  widen: { alignSelf: 'flex-start', marginTop: spacing.md },
-  picks: { marginTop: spacing.lg },
-  exhausted: { marginTop: spacing.lg },
-  actions: { flexDirection: 'row', gap: spacing.xs, marginTop: spacing.xl },
-  notice: { marginTop: spacing.xl },
-  gapXs: { marginTop: spacing.xs },
-  gapSm: { marginTop: spacing.sm },
-  gapLg: { marginTop: spacing.lg },
-  skeletonRow: { flexDirection: 'row', gap: spacing.md },
+  summary: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xxs },
+  // Lines the word up with the cards' right edge; its padding is only there for a bigger tap area.
+  changeButton: { marginRight: -spacing.xs },
+  widen: { alignSelf: 'flex-start', marginTop: spacing.sm },
+  picks: { marginTop: spacing.sm, gap: spacing.sm },
+  exhausted: { marginTop: spacing.md },
+  shuffle: { marginTop: spacing.md },
+  notice: { marginTop: spacing.lg },
+  skeletonCard: {
+    borderRadius: radius.lg,
+    borderCurve: 'continuous',
+    borderWidth: borderWidth.default,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+  },
+  skeletonPhoto: { aspectRatio: 16 / 9, width: '100%' },
+  skeletonBody: { flexDirection: 'row', gap: spacing.sm, padding: spacing.sm },
+  skeletonText: { flex: 1, gap: spacing.xs },
 });

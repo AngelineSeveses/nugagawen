@@ -6,7 +6,7 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { AccessibilityInfo, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, motion, radius, spacing } from '@/theme';
+import { colors, motion, radius, size, spacing } from '@/theme';
 import { Text } from './text';
 
 interface ToastOptions {
@@ -80,18 +80,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', left: spacing.lg, right: spacing.lg, alignItems: 'center' },
+  wrap: { position: 'absolute', left: size.screenPadding, right: size.screenPadding, alignItems: 'center' },
   toast: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    minHeight: 48,
+    minHeight: size.buttonSecondary,
     paddingLeft: spacing.md,
     paddingRight: spacing.xs,
     borderRadius: radius.md,
     backgroundColor: colors.ink,
   },
   message: { color: colors.onInk, flexShrink: 1, paddingVertical: spacing.sm },
-  action: { minHeight: 44, justifyContent: 'center', paddingHorizontal: spacing.xs },
+  action: { minHeight: size.touchMin, justifyContent: 'center', paddingHorizontal: spacing.xs },
   actionText: { color: colors.onInk, textDecorationLine: 'underline' },
 });

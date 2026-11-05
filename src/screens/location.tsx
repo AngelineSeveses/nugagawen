@@ -8,23 +8,24 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native';
 import { Button } from '@/components/button';
 import { ChoiceGroup } from '@/components/choice-group';
-import { CrosshairIcon, MagnifyingGlassIcon, MapPinIcon, XIcon } from '@/components/icons';
+import { CrosshairIcon, MapPinIcon } from '@/components/icons';
 import { ActionBar, Divider } from '@/components/misc';
+import { SearchInput } from '@/components/search-input';
 import { Text } from '@/components/text';
 import { useCopy } from '@/localization';
 import { canOpenSystemSettings, getCurrentArea, getPermission, openSystemSettings, requestPermission } from '@/services/location';
 import { places, type AreaSuggestion } from '@/services/places';
 import { RADIUS_STEPS, usePreferences } from '@/state/preferences';
-import { colors, fonts, radius, size, spacing } from '@/theme';
+import { borderWidth, colors, radius, size, spacing } from '@/theme';
 import type { RadiusKm, SearchArea } from '@/types';
 
 type GpsState = 'idle' | 'locating' | 'denied' | 'error';
-type SearchState = 'idle' | 'loading' | 'done' | 'error';
+/** Search results belong to the text they were found for, so older answers are ignored automatically. */
+type SearchOutcome = { query: string; suggestions: AreaSuggestion[] } | { query: string; failed: true };
 
 /** Screen 02 (modal): set where to search. Permission is asked only when the user taps "Use my current location". */
 export function LocationScreen() {
@@ -37,8 +38,13 @@ export function LocationScreen() {
   const [radiusKm, setRadiusKm] = useState<RadiusKm>(prefs.radiusKm);
   const [gps, setGps] = useState<GpsState>('idle');
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<AreaSuggestion[]>([]);
-  const [search, setSearch] = useState<SearchState>('idle');
+  const [outcome, setOutcome] = useState<SearchOutcome | undefined>();
+
+  const q = query.trim();
+  const searching = q.length >= 2;
+  const answer = searching && outcome?.query === q ? outcome : undefined;
+  const suggestions = answer && 'suggestions' in answer ? answer.suggestions : [];
+  const searchFailed = answer !== undefined && 'failed' in answer;
 
   // If permission was denied before, say so up front instead of failing on tap.
   useEffect(() => {
@@ -49,26 +55,17 @@ export function LocationScreen() {
 
   // Search as the user types, waiting 300 ms after the last keystroke to save requests.
   useEffect(() => {
-    const q = query.trim();
-    if (q.length < 2) {
-      setSuggestions([]);
-      setSearch('idle');
-      return;
-    }
-    setSearch('loading');
+    if (!searching) return;
     const timer = setTimeout(() => {
       places
         .searchAreas(q, selected?.location)
-        .then((list) => {
-          setSuggestions(list);
-          setSearch('done');
-        })
-        .catch(() => setSearch('error'));
+        .then((list) => setOutcome({ query: q, suggestions: list }))
+        .catch(() => setOutcome({ query: q, failed: true }));
     }, 300);
     return () => clearTimeout(timer);
     // `selected` is only a location bias; re-searching when it changes isn't needed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [q, searching]);
 
   const useCurrentLocation = async () => {
     setGps('locating');
@@ -92,7 +89,7 @@ export function LocationScreen() {
       setSelected(await places.resolveArea(suggestion.id));
       setQuery('');
     } catch {
-      setSearch('error');
+      setOutcome({ query: q, failed: true });
     }
   };
 
@@ -117,21 +114,21 @@ export function LocationScreen() {
         {gps === 'denied' ? (
           <View style={styles.message}>
             <Text variant="bodyLarge">{copy.location.denied}</Text>
-            {canOpenSystemSettings ? (
-              <Button variant="secondary" title={copy.location.openSettings} onPress={openSystemSettings} style={styles.alignStart} />
-            ) : null}
+            {canOpenSystemSettings ? <Button variant="secondary" title={copy.location.openSettings} onPress={openSystemSettings} style={styles.alignStart} /> : null}
           </View>
         ) : (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={copy.location.useCurrent}
             accessibilityHint={copy.location.useCurrentHint}
-            accessibilityState={{ busy: gps === 'locating' }}
+            aria-busy={gps === 'locating'}
             disabled={gps === 'locating'}
             onPress={useCurrentLocation}
-            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.current, pressed && styles.pressed]}
           >
-            <CrosshairIcon size={size.icon} color={colors.ink} weight="regular" />
+            <View style={styles.badge}>
+              <CrosshairIcon size={20} color={colors.ink} weight="regular" />
+            </View>
             <View style={styles.flex}>
               <Text variant="bodyLargeStrong">{gps === 'locating' ? copy.location.locating : copy.location.useCurrent}</Text>
               <Text variant="body" color={gps === 'error' ? 'error' : 'inkSecondary'}>
@@ -144,55 +141,40 @@ export function LocationScreen() {
 
         <Divider spacing={spacing.md} />
 
-        <View style={styles.inputWrap}>
-          <MagnifyingGlassIcon size={20} color={colors.inkSecondary} weight="regular" />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder={copy.location.searchPlaceholder}
-            placeholderTextColor={colors.inkSecondary}
-            accessibilityLabel={copy.location.searchLabel}
-            returnKeyType="search"
-            autoCorrect={false}
-            style={styles.input}
-          />
-          {query ? (
-            <Pressable accessibilityRole="button" accessibilityLabel={copy.location.clearSearch} hitSlop={10} onPress={() => setQuery('')}>
-              <XIcon size={18} color={colors.inkSecondary} weight="regular" />
-            </Pressable>
-          ) : null}
-        </View>
+        <SearchInput value={query} onChangeText={setQuery} placeholder={copy.location.searchPlaceholder} label={copy.location.searchLabel} clearLabel={copy.location.clearSearch} />
 
-        {search === 'loading' ? <ActivityIndicator color={colors.inkSecondary} style={styles.searchStatus} /> : null}
-        {search === 'error' ? (
+        {searching && !answer ? <ActivityIndicator color={colors.inkSecondary} style={styles.searchStatus} /> : null}
+        {searchFailed ? (
           <Text variant="body" color="error" style={styles.searchStatus}>
             {copy.location.searchError}
           </Text>
         ) : null}
-        {search === 'done' && suggestions.length === 0 ? (
+        {answer && !searchFailed && suggestions.length === 0 ? (
           <Text variant="body" color="inkSecondary" style={styles.searchStatus}>
-            {copy.location.noMatches(query.trim())}
+            {copy.location.noMatches(q)}
           </Text>
         ) : null}
-        {suggestions.map((s) => (
-          <Pressable
-            key={s.id}
-            accessibilityRole="button"
-            accessibilityLabel={[s.title, s.subtitle].filter(Boolean).join(', ')}
-            onPress={() => chooseSuggestion(s)}
-            style={({ pressed }) => [styles.row, styles.suggestion, pressed && styles.pressed]}
-          >
-            <MapPinIcon size={20} color={colors.inkSecondary} weight="regular" />
-            <View style={styles.flex}>
-              <Text variant="bodyLargeStrong">{s.title}</Text>
-              {s.subtitle ? (
-                <Text variant="body" color="inkSecondary">
-                  {s.subtitle}
-                </Text>
-              ) : null}
-            </View>
-          </Pressable>
-        ))}
+        <View style={styles.suggestions}>
+          {suggestions.map((s) => (
+            <Pressable
+              key={s.id}
+              accessibilityRole="button"
+              accessibilityLabel={[s.title, s.subtitle].filter(Boolean).join(', ')}
+              onPress={() => chooseSuggestion(s)}
+              style={({ pressed }) => [styles.suggestion, pressed && styles.pressed]}
+            >
+              <MapPinIcon size={20} color={colors.inkSecondary} weight="regular" />
+              <View style={styles.flex}>
+                <Text variant="bodyLargeStrong">{s.title}</Text>
+                {s.subtitle ? (
+                  <Text variant="body" color="inkSecondary">
+                    {s.subtitle}
+                  </Text>
+                ) : null}
+              </View>
+            </Pressable>
+          ))}
+        </View>
 
         <View style={styles.distance}>
           <ChoiceGroup
@@ -200,7 +182,7 @@ export function LocationScreen() {
             options={RADIUS_STEPS.map((km) => ({ value: km, label: copy.radius(km) }))}
             value={radiusKm}
             onChange={setRadiusKm}
-            minLabelWidth={44}
+            minLabelWidth={40}
             compact
           />
         </View>
@@ -220,37 +202,42 @@ export function LocationScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.paper },
-  content: { paddingHorizontal: size.screenPadding, paddingTop: spacing.md, paddingBottom: spacing.xl },
+  content: { paddingHorizontal: size.screenPadding, paddingTop: spacing.md, paddingBottom: spacing.lg },
   flex: { flex: 1 },
   alignStart: { alignSelf: 'flex-start' },
   message: { gap: spacing.sm },
-  row: {
+  current: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    minHeight: size.listRow,
-    marginHorizontal: -spacing.xs,
+    minHeight: size.input,
+    padding: spacing.xs,
+    borderRadius: radius.md,
+    borderCurve: 'continuous',
+    borderWidth: borderWidth.default,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  badge: {
+    width: size.iconBadge,
+    height: size.iconBadge,
+    borderRadius: radius.full,
+    backgroundColor: colors.sage,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  suggestions: { marginTop: spacing.xs },
+  suggestion: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minHeight: size.buttonSecondary,
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.xs,
     borderRadius: radius.md,
   },
-  suggestion: { minHeight: 48 },
   pressed: { backgroundColor: colors.pressed },
-  inputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    minHeight: size.input,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.md,
-    borderCurve: 'continuous',
-    borderWidth: 1,
-    borderColor: colors.controlBorder,
-    backgroundColor: colors.surface,
-    marginBottom: spacing.xs,
-  },
-  input: { flex: 1, fontFamily: fonts.regular, fontSize: 16, color: colors.ink, paddingVertical: spacing.sm },
   searchStatus: { marginVertical: spacing.sm },
-  distance: { marginTop: spacing.xl },
+  distance: { marginTop: spacing.lg },
   selected: { marginBottom: spacing.xs },
 });

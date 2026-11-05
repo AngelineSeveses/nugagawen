@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export const storageKeys = {
   preferences: 'nugagawen:preferences:v1',
   saved: 'nugagawen:saved:v1',
+  firstRun: 'nugagawen:first-run:v1',
 } as const;
 
 export async function loadJSON<T>(key: string): Promise<T | undefined> {

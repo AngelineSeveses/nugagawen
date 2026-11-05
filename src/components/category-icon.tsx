@@ -1,3 +1,4 @@
+import { createElement } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { colors, radius } from '@/theme';
 import {
@@ -52,23 +53,26 @@ const BY_KIND: Record<string, Icon> = {
   attraction: MapTrifoldIcon,
 };
 
-export function iconForPlace(kind: string | undefined, group: 'eat' | 'goOut'): Icon {
+function iconForPlace(kind: string | undefined, group: 'eat' | 'goOut'): Icon {
   return (kind && BY_KIND[kind]) || (group === 'eat' ? ForkKnifeIcon : PersonSimpleWalkIcon);
 }
 
-/** A sage tile with the category icon: used where a place has no photo. */
-export function CategoryTile({ kind, group, size }: { kind?: string; group: 'eat' | 'goOut'; size: number }) {
-  const KindIcon = iconForPlace(kind, group);
+/** The icon for a kind of place. */
+export function CategoryIcon({ kind, group, size }: { kind?: string; group: 'eat' | 'goOut'; size: number }) {
+  return createElement(iconForPlace(kind, group), { size, color: colors.ink, weight: 'light' });
+}
+
+/** A tinted tile with the category icon: used where a place has no photo. */
+export function CategoryTile({ kind, group, size, tint = colors.sage }: { kind?: string; group: 'eat' | 'goOut'; size: number; tint?: string }) {
   return (
-    <View style={[styles.tile, { width: size, height: size }]} accessible={false}>
-      <KindIcon size={Math.round(size * 0.36)} color={colors.ink} weight="light" />
+    <View style={[styles.tile, { width: size, height: size, backgroundColor: tint }]} accessible={false}>
+      <CategoryIcon kind={kind} group={group} size={Math.round(size * 0.4)} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   tile: {
-    backgroundColor: colors.sage,
     borderRadius: radius.md,
     borderCurve: 'continuous',
     alignItems: 'center',

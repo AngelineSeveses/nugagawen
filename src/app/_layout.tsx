@@ -14,14 +14,17 @@ import { DefaultTheme, SplashScreen, Stack, ThemeProvider } from 'expo-router';
 import { deleteDatabaseAsync, SQLiteProvider, type SQLiteDatabase } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { ToastProvider } from '@/components/toast';
 import { LanguageProvider, useLanguage } from '@/localization';
 import { attachOsmDatabase, failOsmDatabase } from '@/services/places';
 import { OSM_DATA_VERSION } from '@/services/places/osm/data-version';
 import { loadJSON, saveJSON } from '@/services/storage';
+import { FirstRunProvider, useFirstRun } from '@/state/first-run';
 import { PreferencesProvider } from '@/state/preferences';
 import { SavedProvider } from '@/state/saved';
-import { colors, fonts } from '@/theme';
+import { colors, size, typeScale } from '@/theme';
+import '@/theme/web-states';
 
 // Keep the splash screen up until the font is ready, so text never flashes in the wrong font.
 SplashScreen.preventAutoHideAsync();
@@ -46,26 +49,40 @@ async function onDatabaseReady(db: SQLiteDatabase) {
   await saveJSON(OSM_DB_KEY, OSM_DB_NAME);
 }
 
-/** The stack navigator. A separate component so its titles can follow the app language. */
+/**
+ * The stack navigator. A separate component so its titles can follow the app language.
+ *
+ * Expo Router concept: `Stack.Protected` makes screens exist only while `guard`
+ * is true. Onboarding and the rest of the app swap places, so Home can't flash
+ * first, and Back can't leave onboarding by accident.
+ */
 function RootStack() {
   const { copy } = useLanguage();
+  const firstRun = useFirstRun();
+  if (!firstRun.loaded) return null;
   return (
     <Stack
       screenOptions={{
         headerStyle: { backgroundColor: colors.paper },
         headerShadowVisible: false,
         headerTintColor: colors.ink,
-        headerTitleStyle: { fontFamily: fonts.semiBold, fontSize: 17, color: colors.ink },
+        headerTitleStyle: { ...typeScale.nav, color: colors.ink },
         headerBackButtonDisplayMode: 'minimal',
         contentStyle: { backgroundColor: colors.paper },
       }}
     >
-      {/* The title is what Back buttons and screen readers call this screen ("Discover, back"). */}
-      <Stack.Screen name="(tabs)" options={{ headerShown: false, title: copy.tabs.discover }} />
-      <Stack.Screen name="location" options={{ presentation: 'modal', title: copy.location.title }} />
-      <Stack.Screen name="results" options={{ title: '' }} />
-      <Stack.Screen name="surprise" options={{ title: '' }} />
-      <Stack.Screen name="place/[id]" options={{ title: '' }} />
+      <Stack.Protected guard={firstRun.showOnboarding}>
+        <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
+      </Stack.Protected>
+      <Stack.Protected guard={!firstRun.showOnboarding}>
+        {/* The title is what Back buttons and screen readers call this screen ("Home, back"). */}
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, title: copy.tabs.home }} />
+        <Stack.Screen name="location" options={{ presentation: 'modal', title: copy.location.title }} />
+        <Stack.Screen name="results" options={{ title: '' }} />
+        <Stack.Screen name="surprise" options={{ title: '' }} />
+        <Stack.Screen name="place/[id]" options={{ title: '' }} />
+        <Stack.Screen name="directions/[id]" options={{ title: copy.directions.title }} />
+      </Stack.Protected>
     </Stack>
   );
 }
@@ -87,6 +104,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={navigationTheme}>
       <LanguageProvider>
+      <FirstRunProvider>
       <PreferencesProvider>
         <SavedProvider>
           <ToastProvider>
@@ -100,11 +118,22 @@ export default function RootLayout() {
               {null}
             </SQLiteProvider>
             <StatusBar style="dark" />
-            <RootStack />
+            {/* Phones fill this; on a wide browser window the app stays phone-width and centered. */}
+            <View style={styles.page}>
+              <View style={styles.column}>
+                <RootStack />
+              </View>
+            </View>
           </ToastProvider>
         </SavedProvider>
       </PreferencesProvider>
+      </FirstRunProvider>
       </LanguageProvider>
     </ThemeProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  page: { flex: 1, backgroundColor: colors.paper },
+  column: { flex: 1, width: '100%', maxWidth: size.contentMax, alignSelf: 'center' },
+});

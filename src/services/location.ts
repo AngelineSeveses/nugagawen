@@ -5,7 +5,7 @@
  */
 import * as Location from 'expo-location';
 import { Linking, Platform } from 'react-native';
-import type { SearchArea } from '@/types';
+import type { LatLng, SearchArea } from '@/types';
 
 export type PermissionState = 'granted' | 'denied' | 'undetermined';
 
@@ -39,6 +39,22 @@ export async function getCurrentArea(): Promise<SearchArea> {
     // Reverse geocoding is a nicety; the coordinates are what the search needs.
   }
   return { label, location, source: 'gps' };
+}
+
+/**
+ * Where the phone is right now, asking permission if it hasn't been asked yet.
+ * Undefined when location is off or unavailable; directions then start from the chosen area.
+ */
+export async function getCurrentPosition(): Promise<LatLng | undefined> {
+  try {
+    let permission = await getPermission();
+    if (permission === 'undetermined') permission = await requestPermission();
+    if (permission !== 'granted') return undefined;
+    const position = await withTimeout(Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }), 10000);
+    return { latitude: position.coords.latitude, longitude: position.coords.longitude };
+  } catch {
+    return undefined;
+  }
 }
 
 /** Browsers have no app settings page, so this only exists on iOS and Android. */

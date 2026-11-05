@@ -2,7 +2,7 @@
   "expo": {
     "name": "Nugagawen",
     "slug": "nugagawen",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "nugagawen",
@@ -42,7 +42,8 @@
         }
       ],
       "expo-sqlite",
-      "expo-localization"
+      "expo-localization",
+      "@maplibre/maplibre-react-native"
     ],
     "experiments": {
       "typedRoutes": true,

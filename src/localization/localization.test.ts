@@ -27,6 +27,8 @@ const SAME_IN_BOTH = new Set([
   'radius', // "2 km"
   'budget.moderate.range', // "₱250–600"
   'place.website',
+  'place.addressTitle',
+  'tabs.home', // the Filipino word most apps use is also "Home"
   'settings.dataGoogle',
   'settings.dataOsm',
   'categories.fast_food',

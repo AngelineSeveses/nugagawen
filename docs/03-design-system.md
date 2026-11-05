@@ -19,6 +19,45 @@ Token values now live in code: [`src/theme/`](../src/theme/). Where this documen
 
 **Revision 3 (OpenStreetMap data).** OSM has no photos, ratings or prices. Places without a photo show a sage category tile with a specific Phosphor icon (coffee, burger, tree, waves…) instead of an empty photo frame; the Results lead pick uses a larger tile rather than a 16:9 placeholder. Rating rows appear only when real ratings exist. "© OpenStreetMap contributors" appears under results and place details (ODbL).
 
+**Revision 4 (v1.2, Nov 2026).** The user's v1.2 brief refines the system. Where this revision and older sections below disagree, this revision wins.
+
+| Area | Before | v1.2 | Why |
+|---|---|---|---|
+| Side padding | 24 | **16** on every screen | User's brief |
+| Type scale | Display 32, H1 28, H2 24 | Display 28, H1 24, H2 22 | Headings stay modest, so the choices stay above the fold on small phones |
+| Radius | 8, 12, 16 | 8 small controls, 12 inputs and tiles, 14 buttons, 16 cards, 20 tooltips, 24 large panels | User's brief |
+| Borders | Mixed widths | 1 by default; a 2 ring for selected, drawn as an overlay so selecting never shifts the layout | User's brief |
+| Selected state | Outline only on compact options (color alone) | Tiles: ink ring + check. Compact segments: solid ink fill. Never color alone | WCAG 1.4.1; the fill comes from the reference image |
+| Containers | Spacing and hairlines | White cards with a 1 border for picks, saved places and settings groups | User's brief and reference image |
+| Pick types | All sage | One card design; Safe Choice = sage + check, Surprise Me = coral tint + die, Hidden Gem = sand tint + gem | Distinguishable without three designs, and the word and icon say it too |
+| Illustrations | None allowed (§9.5) | Original flat vector art for selectors, states and onboarding | User's brief. **Never presented as photos of real places** |
+| Main action | "Find my three", tab "Discover" | Button "Discover", tab "Home" | The brief's guide says "Tap Discover"; two stacked "Discover" labels would be confusing |
+
+**New tokens** (`src/theme/`): `tintCoral #FBE6DB`, `tintSand #F2EAD8`, `border`, `borderStrong`, `overlay`, `borderWidth`, radius `button`, `xl`, `xxl`, type `nav`, `tab`, and a separate `illustration` palette used only by `src/components/illustrations/`.
+
+**Verified contrast for the new tints:** ink 13.06 / 13.13, inkSecondary 4.79 / 4.82, accentInk 4.72 / 4.74 (on tintCoral / tintSand). All pass 4.5:1.
+
+**Kept deviations from the brief's palette.** The v1.2 brief lists Muted `#777168` and Warning `#A56617`, and also asks for WCAG 2.2 AA. On cream these measure 4.40:1 and 4.24:1, which fail AA, so `inkSecondary #6B655C` and `warning #965A12` stay.
+
+**Reference image (travel app concept).** Taken: tinted selector tiles with art, a small label above a value beside an icon in a tinted circle, white bordered cards, round icon buttons, a solid dark fill for selected segments, modest section headings. Left out: its lavender and teal palette, tilted presentation, ticket shapes, points and voucher promos, and thin low-contrast text.
+
+**Illustration style.** Flat, rounded shapes with no outlines, gradients or shadows. Coral, sage, sand and ink only. Each one explains something: Kain is rice with a spoon and fork, Gala is a palm tree and hills, Kahit Ano is dice. All are hidden from screen readers unless the words nearby don't already say it (onboarding art has a description).
+
+**Components, by the brief's names**
+
+| Brief | In the code |
+|---|---|
+| PrimaryButton, SecondaryButton | `Button` variants `primary`, `secondary` (plus `ghost`, `dark`) |
+| IconButton, SectionHeader, ProgressIndicator, SearchInput | `icon-button`, `section-header`, `progress-indicator`, `search-input` |
+| ActivitySelector, BudgetSelector, LocationPicker | `activity-selector`, `budget-selector` (over `choice-group`), `location-picker` |
+| RecommendationCard, PlaceCard | `recommendation-card`, `place-card` |
+| LoadingSkeleton | `Skeleton` in `misc` (a slow pulse; still with Reduce Motion) |
+| EmptyState, ErrorState | `state-message` |
+| OnboardingSlide | `onboarding-slide` |
+| Tooltip | The tooltip in `features/guide/guide-overlay` |
+| BottomNavigation | The tab layout in `src/app/(tabs)/_layout.tsx` |
+| BottomSheet | Not needed yet: the Location screen uses the platform's modal |
+
 Related docs: [01 Product](01-product.md) · [02 UX](02-ux.md) · [04 Roadmap and architecture](04-roadmap.md)
 
 ---

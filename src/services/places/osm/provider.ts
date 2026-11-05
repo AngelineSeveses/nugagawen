@@ -11,13 +11,15 @@ import { loadCategories, queryArea, queryAreas, queryDetails, queryNearby, type 
 
 let attach: (db: SQLiteDatabase) => void = () => {};
 let fail: (error: Error) => void = () => {};
-const database = new Promise<SQLiteDatabase>((resolve, reject) => {
+let database = new Promise<SQLiteDatabase>((resolve, reject) => {
   attach = resolve;
   fail = reject;
 });
 
 export function attachOsmDatabase(db: SQLiteDatabase) {
-  attach(db);
+  attach(db); // wakes up any queries that were waiting for the first open
+  // Fast Refresh can close and reopen the database while developing, so always use the newest one.
+  database = Promise.resolve(db);
 }
 
 /** If the bundled database can't be opened, searches fail with an error instead of waiting forever. */
@@ -30,7 +32,10 @@ const run: Runner = async <T,>(sql: string, params: (string | number)[]) => {
     const db = await database;
     return await db.getAllAsync<T>(sql, params);
   } catch (error) {
-    throw new PlacesError('unknown', error instanceof Error ? error.message : String(error));
+    const message = error instanceof Error ? error.message : String(error);
+    // People see a friendly error; this keeps the real cause visible while developing.
+    if (__DEV__) console.warn(`Place database query failed: ${message}`);
+    throw new PlacesError('unknown', message);
   }
 };
 
