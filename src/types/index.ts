@@ -88,6 +88,8 @@ export interface PlaceDetails extends Place {
   wheelchairAccessibleEntrance?: boolean;
   /** Opening hours exactly as listed, when we couldn't read them into weekday lines. */
   hoursText?: string;
+  /** Phone number as listed in the data source. */
+  phone?: string;
 }
 
 export type PickKind = 'safe' | 'surprise' | 'gem';

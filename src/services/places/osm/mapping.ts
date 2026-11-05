@@ -24,6 +24,7 @@ export interface OsmPlaceRow {
   wheelchair: string | null;
   notable: number;
   photo: string | null;
+  phone: string | null;
 }
 
 /** One row of the `categories` table. */
@@ -106,6 +107,7 @@ export function rowToDetails(row: OsmPlaceRow, category: OsmCategoryRow, now: Da
     ...place,
     photos: [],
     week,
+    phone: row.phone ?? undefined,
     hoursText: !week && row.hours ? row.hours : undefined,
     wheelchairAccessibleEntrance: row.wheelchair === 'yes' ? true : undefined,
   };

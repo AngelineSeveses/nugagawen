@@ -27,7 +27,7 @@ export async function loadCategories(run: Runner): Promise<Categories> {
   return new Map(rows.map((r) => [r.code, r]));
 }
 
-const PLACE_COLUMNS = 'p.id, p.name, p.cat, p.lat, p.lng, p.cuisine, p.hours, p.brand, p.brand_price, p.addr, p.contact, p.website, p.fee, p.wheelchair, p.notable, p.photo';
+const PLACE_COLUMNS = 'p.id, p.name, p.cat, p.lat, p.lng, p.cuisine, p.hours, p.brand, p.brand_price, p.addr, p.contact, p.website, p.fee, p.wheelchair, p.notable, p.photo, p.phone';
 
 /** Places within the radius, nearest first, for the chosen activity. */
 export async function queryNearby(

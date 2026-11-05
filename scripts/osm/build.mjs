@@ -172,6 +172,8 @@ for (const group of ['eat', 'sights', 'leisure', 'nature']) {
       addr: addr || null,
       contact: t.phone || t['contact:phone'] || t.website || t['contact:website'] || t['contact:facebook'] ? 1 : 0,
       website: t.website ?? t['contact:website'] ?? null,
+      // OpenStreetMap can list several numbers separated by ";": keep the first.
+      phone: (t.phone ?? t['contact:phone'] ?? '').split(';')[0].trim() || null,
       fee: t.fee ?? null,
       wheelchair: t.wheelchair ?? null,
       notable: t.wikidata || t.wikipedia ? 1 : 0,
@@ -270,7 +272,7 @@ db.exec(`
   CREATE TABLE places (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, cat INTEGER NOT NULL, lat REAL NOT NULL, lng REAL NOT NULL,
     cuisine TEXT, hours TEXT, brand TEXT, brand_price TEXT, addr TEXT, contact INTEGER NOT NULL,
-    website TEXT, fee TEXT, wheelchair TEXT, notable INTEGER NOT NULL, photo TEXT
+    website TEXT, fee TEXT, wheelchair TEXT, notable INTEGER NOT NULL, photo TEXT, phone TEXT
   ) WITHOUT ROWID;
   CREATE TABLE areas (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, norm TEXT NOT NULL, kind TEXT NOT NULL, rank INTEGER NOT NULL,
@@ -280,7 +282,7 @@ db.exec(`
 const fetchedAt = existsSync(join(RAW, 'fetched-at.txt')) ? readFileSync(join(RAW, 'fetched-at.txt'), 'utf8').trim() : new Date().toISOString();
 // Date and time of the download plus the table layout version, e.g. 202611040842s2. Either one changing
 // gives phones a new database file name, so they copy the new file instead of keeping the old one.
-const SCHEMA_VERSION = 2; // 2: added places.photo
+const SCHEMA_VERSION = 3; // 2: added places.photo; 3: added places.phone
 const version = `${fetchedAt.replace(/[-:T]/g, '').slice(0, 12)}s${SCHEMA_VERSION}`;
 const insMeta = db.prepare('INSERT INTO meta VALUES (?, ?)');
 insMeta.run('source', 'OpenStreetMap contributors (ODbL)');
@@ -290,9 +292,9 @@ const insCat = db.prepare('INSERT INTO categories VALUES (?, ?, ?, ?, ?)');
 for (const [code, , key, label, grp, price] of CATEGORIES) insCat.run(code, key, label, grp, price);
 
 db.exec('BEGIN');
-const insPlace = db.prepare('INSERT INTO places VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+const insPlace = db.prepare('INSERT INTO places VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
 for (const p of kept)
-  insPlace.run(p.id, p.name, p.cat, p.lat, p.lng, p.cuisine, p.hours, p.brand, p.brand_price, p.addr, p.contact, p.website, p.fee, p.wheelchair, p.notable, p.photo);
+  insPlace.run(p.id, p.name, p.cat, p.lat, p.lng, p.cuisine, p.hours, p.brand, p.brand_price, p.addr, p.contact, p.website, p.fee, p.wheelchair, p.notable, p.photo, p.phone);
 const insArea = db.prepare('INSERT OR IGNORE INTO areas VALUES (?,?,?,?,?,?,?,?)');
 for (const a of areas) insArea.run(a.id, a.name, norm(a.name), a.kind, KIND_RANK[a.kind] ?? 9, a.lat, a.lng, a.context);
 db.exec('COMMIT');
