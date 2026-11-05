@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { explain } from '@/features/recommendation/explain';
+import { usePlacePhotos } from '@/hooks/use-place-photos';
 import { categoryName, useCopy, type Copy } from '@/localization';
 import { colors, radius, size, spacing } from '@/theme';
 import type { Recommendation } from '@/types';
@@ -47,6 +48,8 @@ export function RecommendationItem({ recommendation: rec, variant, onPress }: Pr
   const { place } = rec;
   const category = categoryName(place, copy);
   const reason = explain(rec.kind, place, rec.facts, copy);
+  // OpenStreetMap places with a Wikimedia link get their first photo here; others keep the category tile.
+  const photo = usePlacePhotos(place).photos[0];
   const rating =
     place.rating !== undefined
       ? `${formatRating(place.rating)}${variant === 'lead' && place.reviewCount ? ` (${formatCount(place.reviewCount)})` : ''}`
@@ -60,7 +63,7 @@ export function RecommendationItem({ recommendation: rec, variant, onPress }: Pr
   );
 
   // The large photo layout only when there is a photo; otherwise the category tile tells the kind of place.
-  if (variant === 'lead' && place.photo) {
+  if (variant === 'lead' && photo) {
     return (
       <Pressable
         accessibilityRole="button"
@@ -69,7 +72,7 @@ export function RecommendationItem({ recommendation: rec, variant, onPress }: Pr
         style={({ pressed }) => [styles.lead, pressed && styles.leadPressed]}
       >
         <PickLabel kind={rec.kind} />
-        <PlacePhoto photo={place.photo} placeName={place.name} group={place.group} showAttribution style={styles.leadPhoto} />
+        <PlacePhoto photo={photo} placeName={place.name} group={place.group} kind={place.kind} showAttribution style={styles.leadPhoto} />
         <View style={styles.leadText}>
           <Text variant="h3">{place.name}</Text>
           <Text variant="body" color="inkSecondary">
@@ -92,9 +95,9 @@ export function RecommendationItem({ recommendation: rec, variant, onPress }: Pr
       onPress={onPress}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
     >
-      {place.photo ? (
+      {photo ? (
         <PlacePhoto
-          photo={place.photo}
+          photo={photo}
           placeName={place.name}
           group={place.group}
           kind={place.kind}

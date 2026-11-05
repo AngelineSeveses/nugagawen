@@ -24,8 +24,12 @@ export interface SearchArea {
 
 export interface PlacePhoto {
   uri: string;
-  /** Photographer credit the data source requires us to show. */
+  /** Photographer credit the source requires us to show. */
   attribution?: string;
+  /** Licence short name, e.g. "CC BY-SA 4.0" (Wikimedia Commons). */
+  license?: string;
+  /** Page with the photo's full credits and licence. */
+  sourceUrl?: string;
 }
 
 /** What a nearby search returns for each place: enough to rank and list it. */
@@ -47,6 +51,8 @@ export interface Place {
   /** ISO time of the next closing (when open) or opening (when closed). */
   nextChange?: string;
   photo?: PlacePhoto;
+  /** Wikimedia link(s) for photos, e.g. "Category:Rizal Park|wikidata:Q123" (OpenStreetMap places). */
+  photoRef?: string;
   /** Category key such as 'cafe' or 'beach' (picks the icon). */
   kind?: string;
   /** What we know when there are no ratings (OpenStreetMap data). */

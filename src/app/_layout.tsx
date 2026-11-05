@@ -66,6 +66,7 @@ function RootStack() {
       <Stack.Screen name="results" options={{ title: '' }} />
       <Stack.Screen name="surprise" options={{ title: '' }} />
       <Stack.Screen name="place/[id]" options={{ title: '' }} />
+      <Stack.Screen name="directions/[id]" options={{ title: copy.directions.title }} />
     </Stack>
   );
 }

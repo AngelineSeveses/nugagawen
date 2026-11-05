@@ -42,7 +42,8 @@
         }
       ],
       "expo-sqlite",
-      "expo-localization"
+      "expo-localization",
+      "@maplibre/maplibre-react-native"
     ],
     "experiments": {
       "typedRoutes": true,

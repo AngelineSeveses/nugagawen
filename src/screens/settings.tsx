@@ -112,6 +112,7 @@ export function SettingsScreen() {
           label={copy.settings.dataSource}
           value={dataSource === 'osm' ? copy.settings.dataOsm : copy.settings.dataGoogle}
         />
+        <SettingsRow label={copy.settings.photosSource} value={dataSource === 'osm' ? 'Wikimedia Commons' : copy.settings.dataGoogle} />
         {dataSource === 'osm' ? (
           <View style={styles.textBlock}>
             <Text variant="body" color="inkSecondary">

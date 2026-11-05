@@ -86,6 +86,27 @@ function matchBrand(tags) {
   return undefined;
 }
 
+/**
+ * Photo links we can legally show: Wikimedia Commons files and categories, and
+ * Wikidata items (which can point to Commons). Links to other websites are
+ * skipped because their licence is unknown. Returns e.g. "Category:Rizal Park|wikidata:Q123".
+ */
+function photoRefs(t) {
+  const refs = [];
+  const commons = t.wikimedia_commons?.trim();
+  if (commons && /^(File|Category):/i.test(commons)) refs.push(commons.replace(/^file:/i, 'File:').replace(/^category:/i, 'Category:'));
+  const image = t.image?.trim();
+  if (image) {
+    const page = image.match(/commons\.wikimedia\.org\/wiki\/(File:[^?#]+)/i);
+    const upload = image.match(/upload\.wikimedia\.org\/wikipedia\/commons\/(?:thumb\/)?[0-9a-f]\/[0-9a-f]{2}\/([^/?#]+)/i);
+    if (/^File:/i.test(image)) refs.push(image);
+    else if (page) refs.push(decodeURIComponent(page[1]).replace(/_/g, ' '));
+    else if (upload) refs.push(`File:${decodeURIComponent(upload[1]).replace(/_/g, ' ')}`);
+  }
+  if (/^Q\d+$/.test(t.wikidata ?? '')) refs.push(`wikidata:${t.wikidata}`);
+  return refs.length ? [...new Set(refs)].join('|') : null;
+}
+
 function readGroup(name) {
   const file = join(RAW, `${name}.json`);
   if (!existsSync(file)) throw new Error(`Missing ${file}. Run: node scripts/osm/fetch.mjs`);
@@ -154,6 +175,7 @@ for (const group of ['eat', 'sights', 'leisure', 'nature']) {
       fee: t.fee ?? null,
       wheelchair: t.wheelchair ?? null,
       notable: t.wikidata || t.wikipedia ? 1 : 0,
+      photo: photoRefs(t),
       detail: Object.keys(t).length,
     });
   }
@@ -248,7 +270,7 @@ db.exec(`
   CREATE TABLE places (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, cat INTEGER NOT NULL, lat REAL NOT NULL, lng REAL NOT NULL,
     cuisine TEXT, hours TEXT, brand TEXT, brand_price TEXT, addr TEXT, contact INTEGER NOT NULL,
-    website TEXT, fee TEXT, wheelchair TEXT, notable INTEGER NOT NULL
+    website TEXT, fee TEXT, wheelchair TEXT, notable INTEGER NOT NULL, photo TEXT
   ) WITHOUT ROWID;
   CREATE TABLE areas (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, norm TEXT NOT NULL, kind TEXT NOT NULL, rank INTEGER NOT NULL,
@@ -256,8 +278,10 @@ db.exec(`
   ) WITHOUT ROWID;
 `);
 const fetchedAt = existsSync(join(RAW, 'fetched-at.txt')) ? readFileSync(join(RAW, 'fetched-at.txt'), 'utf8').trim() : new Date().toISOString();
-// Date and time of the download, e.g. 202611041638: a new download always gets a new database file name on phones.
-const version = fetchedAt.replace(/[-:T]/g, '').slice(0, 12);
+// Date and time of the download plus the table layout version, e.g. 202611040842s2. Either one changing
+// gives phones a new database file name, so they copy the new file instead of keeping the old one.
+const SCHEMA_VERSION = 2; // 2: added places.photo
+const version = `${fetchedAt.replace(/[-:T]/g, '').slice(0, 12)}s${SCHEMA_VERSION}`;
 const insMeta = db.prepare('INSERT INTO meta VALUES (?, ?)');
 insMeta.run('source', 'OpenStreetMap contributors (ODbL)');
 insMeta.run('fetched_at', fetchedAt);
@@ -266,9 +290,9 @@ const insCat = db.prepare('INSERT INTO categories VALUES (?, ?, ?, ?, ?)');
 for (const [code, , key, label, grp, price] of CATEGORIES) insCat.run(code, key, label, grp, price);
 
 db.exec('BEGIN');
-const insPlace = db.prepare('INSERT INTO places VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+const insPlace = db.prepare('INSERT INTO places VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
 for (const p of kept)
-  insPlace.run(p.id, p.name, p.cat, p.lat, p.lng, p.cuisine, p.hours, p.brand, p.brand_price, p.addr, p.contact, p.website, p.fee, p.wheelchair, p.notable);
+  insPlace.run(p.id, p.name, p.cat, p.lat, p.lng, p.cuisine, p.hours, p.brand, p.brand_price, p.addr, p.contact, p.website, p.fee, p.wheelchair, p.notable, p.photo);
 const insArea = db.prepare('INSERT OR IGNORE INTO areas VALUES (?,?,?,?,?,?,?,?)');
 for (const a of areas) insArea.run(a.id, a.name, norm(a.name), a.kind, KIND_RANK[a.kind] ?? 9, a.lat, a.lng, a.context);
 db.exec('COMMIT');
@@ -293,7 +317,7 @@ for (const p of kept) {
   counts[label] = (counts[label] ?? 0) + 1;
 }
 console.log(`Raw elements: ${stats.raw}; excluded (private/closed/disused): ${stats.excluded}; uncategorized: ${stats.uncategorized}; duplicates merged: ${stats.duplicates}`);
-console.log(`Places: ${kept.length}`);
+console.log(`Places: ${kept.length} (${kept.filter((p) => p.photo).length} with a Wikimedia photo link)`);
 console.log(Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([k, v]) => `  ${k}: ${v}`).join('\n'));
 console.log(`Areas: ${areas.length} (${Object.entries(areas.reduce((m, a) => ((m[a.kind] = (m[a.kind] ?? 0) + 1), m), {})).map(([k, v]) => `${k} ${v}`).join(', ')})`);
 console.log(`Database: ${OUT_DB.replace(ROOT + '/', '')} (${(statSync(OUT_DB).size / 1e6).toFixed(1)} MB), version ${version}`);

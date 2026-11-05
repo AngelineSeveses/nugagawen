@@ -34,7 +34,7 @@ Nugagawen is **not** a map or a directory. It hands off to the user's maps app f
 
 ### 1.4 Non-goals (MVP)
 
-- Turn-by-turn navigation or an in-app map (we deep-link to Google Maps / Apple Maps).
+- Live turn-by-turn navigation (voice, following your position). Nov 2026 change, user decision: the app now has its own map and written directions (FR-15), and Google Maps stays one tap away for live navigation and public transport.
 - User accounts, sign-in, or cloud sync. Saved places live on the device.
 - Writing reviews, social feeds, chat, or sharing to group chats (sharing is a strong post-MVP candidate).
 - Booking, payments, or deals.
@@ -63,7 +63,7 @@ Nugagawen is **not** a map or a directory. It hands off to the user's maps app f
 
 **Place details**
 - FR-14 Shows photos (with required attribution), name, category, rating and review count with source, estimated budget, address, distance, opening status/hours when available, description when available, and why it was picked.
-- FR-15 **Directions** opens the device's maps app with the place as destination.
+- FR-15 **Directions** opens the app's directions screen: map, route, travel time, distance and written steps for walking, driving or cycling, with a link to Google Maps.
 - FR-16 The user can save or unsave the place. Saving updates the button immediately and confirms with a short message.
 
 **Saved**
@@ -283,7 +283,7 @@ Main journey: a returning user who wants to go out now. The design response colu
 | 6. Review | Reads three picks | "Okay, one of these" | Too much text; can't tell the picks apart | Lead pick large; two alternates as rows; each labelled with icon and words; one-line reason |
 | 7. Not convinced | Taps **Iba naman** | "Show me something else" | Same places again; waiting | Instant shuffle from the existing pool; no repeats |
 | 8. Inspect | Opens a pick | "Is it open? How far? How much?" | Key facts buried | Open status, distance, cost, address first; description after |
-| 9. Decide and go | Taps **Directions** | Relief | Leaves the app confused | Opens their maps app with the destination set |
+| 9. Decide and go | Taps **Directions** | Relief | Leaves the app confused | Route, time and written steps on one screen; Google Maps one tap away |
 | 10. Later | Saves a place for another day | "Next time" | Can't find it again | Saved tab, one tap; undo on remove |
 
 ### Alternate journeys (designed in [02 UX §7](02-ux.md#7-screen-by-screen-ux))

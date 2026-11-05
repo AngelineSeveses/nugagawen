@@ -4,10 +4,13 @@ import { useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
-import { BookmarkSimpleIcon, CaretLeftIcon, ClockIcon, GlobeIcon, MapPinIcon, NavigationArrowIcon, StarIcon, WalletIcon, WarningIcon, WheelchairIcon } from '@/components/icons';
+import { BookmarkSimpleIcon, CaretLeftIcon, ClockIcon, GlobeIcon, ImagesIcon, MapPinIcon, NavigationArrowIcon, StarIcon, WalletIcon, WarningIcon, WheelchairIcon } from '@/components/icons';
 import { ActionBar, DataAttribution, FactRow, Skeleton } from '@/components/misc';
 import { PickLabel } from '@/components/pick-label';
+import { mapAvailable, PlaceMap } from '@/components/map/place-map';
+import { PhotoViewer } from '@/components/photo-viewer';
 import { PlacePhoto } from '@/components/place-photo';
+import { usePlacePhotos } from '@/hooks/use-place-photos';
 import { StateMessage } from '@/components/state-message';
 import { Text } from '@/components/text';
 import { useToast } from '@/components/toast';
@@ -16,6 +19,7 @@ import { CategoryTile } from '@/components/category-icon';
 import { categoryName, useCopy } from '@/localization';
 import { describeWeek } from '@/utils/opening-hours';
 import { whyThis } from '@/features/recommendation/explain';
+import { googlePhotosUrl } from '@/services/maps/links';
 import { placeCache, places, PlacesError } from '@/services/places';
 import { usePreferences } from '@/state/preferences';
 import { useSaved } from '@/state/saved';
@@ -24,12 +28,6 @@ import type { PickKind, PlaceDetails } from '@/types';
 import { distanceMeters, formatCount, formatDistance, formatPrice, formatRating, formatTime, isPriceEstimate } from '@/utils/format';
 
 const PICK_KINDS: PickKind[] = ['safe', 'surprise', 'gem'];
-
-function directionsUrl(place: { id: string; location: { latitude: number; longitude: number } }) {
-  const { latitude, longitude } = place.location;
-  const placeId = place.id.startsWith('sample-') ? '' : `&destination_place_id=${encodeURIComponent(place.id)}`;
-  return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}${placeId}`;
-}
 
 /** Screen 04: answer "is it open, how far, how much?" first, then let the person go. */
 export function PlaceScreen() {
@@ -61,6 +59,9 @@ export function PlaceScreen() {
   }, [id, attempt]);
 
   const place = details ?? cached;
+  // Google details bring their own photos; OpenStreetMap places load theirs from Wikimedia Commons.
+  const { photos } = usePlacePhotos(place, details?.photos ?? []);
+  const [viewerAt, setViewerAt] = useState<number | undefined>(undefined);
   const header = (
     <Stack.Screen
       options={{
@@ -102,16 +103,17 @@ export function PlaceScreen() {
 
   const isSaved = saved.isSaved(place.id);
   const distance = prefs.area ? distanceMeters(prefs.area.location, place.location) : undefined;
-  const photos = details?.photos.length ? details.photos : place.photo ? [place.photo] : [];
   const why = whyThis(place, prefs.budget, distance, copy);
   const hoursLines = details?.week ? describeWeek(details.week, copy.hours) : details?.weekdayHours;
+
+  const openDirections = () => router.push({ pathname: '/directions/[id]', params: { id: place.id } });
 
   const toggleSave = () => {
     if (isSaved) {
       const removed = saved.remove(place.id);
       toast.show({ message: copy.place.removedToast, actionLabel: copy.place.undo, onAction: () => removed && saved.restore(removed) });
     } else {
-      saved.save(place);
+      saved.save({ ...place, photo: photos[0] ?? place.photo });
       toast.show({ message: copy.place.savedToast });
     }
   };
@@ -153,7 +155,13 @@ export function PlaceScreen() {
           </View>
         ) : (
         <View>
-          <PlacePhoto photo={photos[0]} placeName={place.name} group={place.group} kind={place.kind} aspectRatio={4 / 3} borderRadius={0} showAttribution />
+          <Pressable
+            accessibilityRole="imagebutton"
+            accessibilityLabel={copy.place.openPhoto(1, photos.length)}
+            onPress={() => setViewerAt(0)}
+          >
+            <PlacePhoto photo={photos[0]} placeName={place.name} group={place.group} kind={place.kind} aspectRatio={4 / 3} borderRadius={0} showAttribution />
+          </Pressable>
           {/* Short scrim so the status bar stays readable over any photo. */}
           <View style={[styles.topScrim, { height: insets.top + 56 }]} pointerEvents="none" />
           {photos.length > 1 ? (
@@ -212,6 +220,25 @@ export function PlaceScreen() {
             ) : null}
           </View>
 
+          {mapAvailable ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={copy.directions.mapPreviewLabel(place.name)}
+              onPress={openDirections}
+              style={({ pressed }) => [styles.mapPreview, pressed && styles.pressedPhoto]}
+            >
+              {/* The map ignores touches here, so a tap anywhere on it opens directions. */}
+              <View style={styles.mapNoTouch}>
+                <PlaceMap
+                  destination={place.location}
+                  interactive={false}
+                  accessibilityLabel={copy.directions.mapPreviewLabel(place.name)}
+                  style={styles.mapFill}
+                />
+              </View>
+            </Pressable>
+          ) : null}
+
           {why ? (
             <View style={styles.why}>
               <Text variant="h4" accessibilityRole="header">
@@ -260,28 +287,45 @@ export function PlaceScreen() {
             </View>
           ) : null}
 
-          {photos.length > 1 ? (
-            <View style={styles.section}>
-              <Text variant="h4" accessibilityRole="header">
-                {copy.place.photosTitle}
-              </Text>
+          {/* Photos: a gallery when free photos exist, and always a way to see more on Google Maps. */}
+          <View style={styles.section}>
+            <Text variant="h4" accessibilityRole="header">
+              {copy.place.photosTitle}
+            </Text>
+            {photos.length > 1 ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.strip}>
-                {photos.slice(1).map((photo) => (
-                  <Image
+                {photos.slice(1).map((photo, i) => (
+                  <Pressable
                     key={photo.uri}
-                    source={{ uri: photo.uri }}
-                    style={styles.stripPhoto}
-                    contentFit="cover"
-                    accessibilityLabel={copy.place.photoLabel(place.name)}
-                  />
+                    accessibilityRole="imagebutton"
+                    accessibilityLabel={copy.place.openPhoto(i + 2, photos.length)}
+                    onPress={() => setViewerAt(i + 1)}
+                    style={({ pressed }) => pressed && styles.pressedPhoto}
+                  >
+                    <Image source={{ uri: photo.uri }} style={styles.stripPhoto} contentFit="cover" transition={150} />
+                  </Pressable>
                 ))}
               </ScrollView>
-            </View>
-          ) : null}
+            ) : null}
+            {photos.length > 0 && photos[0].sourceUrl ? (
+              <Text variant="caption" color="inkSecondary" style={styles.gapXs}>
+                {copy.place.photosFrom}
+              </Text>
+            ) : null}
+            <Button
+              variant="secondary"
+              icon={ImagesIcon}
+              title={copy.place.seePhotosOnGoogle}
+              onPress={() => Linking.openURL(googlePhotosUrl(place))}
+              style={styles.googlePhotos}
+            />
+          </View>
 
           <DataAttribution detailed style={styles.section} />
         </View>
       </ScrollView>
+
+      <PhotoViewer photos={photos} placeName={place.name} openAt={viewerAt} onClose={() => setViewerAt(undefined)} />
 
       <ActionBar>
         <Button
@@ -296,7 +340,7 @@ export function PlaceScreen() {
         <Button
           title={copy.place.directions}
           icon={NavigationArrowIcon}
-          onPress={() => Linking.openURL(directionsUrl(place))}
+          onPress={openDirections}
           style={styles.flex}
         />
       </ActionBar>
@@ -345,4 +389,9 @@ const styles = StyleSheet.create({
   gapXs: { marginTop: spacing.xs },
   strip: { gap: spacing.xs, marginTop: spacing.sm },
   stripPhoto: { width: 112, height: 112, borderRadius: radius.md },
+  pressedPhoto: { opacity: 0.8 },
+  mapPreview: { marginTop: spacing.lg, height: 168 },
+  mapNoTouch: { flex: 1, pointerEvents: 'none' },
+  mapFill: { flex: 1 },
+  googlePhotos: { alignSelf: 'flex-start', marginTop: spacing.sm },
 });

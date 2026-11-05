@@ -6,7 +6,73 @@
  * na lang."), not textbook-formal. Common loanwords stay where Filipinos use them
  * (mall, website, km). Brand words live in brand.ts and never change.
  */
+import type { Compass, RouteStep, StepModifier } from '@/services/routing/types';
 import type { Copy } from './en';
+
+const COMPASS_FIL: Record<Compass, string> = {
+  n: 'hilaga',
+  ne: 'hilagang-silangan',
+  e: 'silangan',
+  se: 'timog-silangan',
+  s: 'timog',
+  sw: 'timog-kanluran',
+  w: 'kanluran',
+  nw: 'hilagang-kanluran',
+};
+
+function turnFil(modifier: StepModifier | undefined): string {
+  switch (modifier) {
+    case 'left':
+      return 'Kumaliwa';
+    case 'right':
+      return 'Kumanan';
+    case 'slight left':
+      return 'Bahagyang kumaliwa';
+    case 'slight right':
+      return 'Bahagyang kumanan';
+    case 'sharp left':
+      return 'Kumaliwa nang husto';
+    case 'sharp right':
+      return 'Kumanan nang husto';
+    case 'uturn':
+      return 'Mag-U-turn';
+    default:
+      return 'Dumiretso';
+  }
+}
+
+/** Isang nakasulat na direksiyon. Gumagana kahit walang pangalan ang kalsada, dahil marami ang walang nakalista. */
+function instructionFil(step: RouteStep, destination?: string): string {
+  const sa = step.road ? ` sa ${step.road}` : '';
+  const papunta = step.road ? ` papunta sa ${step.road}` : '';
+  const left = step.modifier?.includes('left');
+  switch (step.type) {
+    case 'depart':
+      return `Tumungo pa-${COMPASS_FIL[step.compass]}${sa}`;
+    case 'arrive':
+      return destination ? `Nandito na ang ${destination}` : 'Nandito ka na';
+    case 'turn':
+      return `${turnFil(step.modifier)}${sa}`;
+    case 'merge':
+      return step.road ? `Pumasok sa ${step.road}` : 'Pumasok sa kalsada';
+    case 'ramp-on':
+      return `Dumaan sa rampa${papunta}`;
+    case 'ramp-off':
+      return `Lumabas sa exit${papunta}`;
+    case 'fork':
+      return `Manatili sa ${left ? 'kaliwa' : 'kanan'}${papunta}`;
+    case 'end-of-road':
+      return `Sa dulo ng daan, ${left ? 'kumaliwa' : 'kumanan'}${sa}`;
+    case 'roundabout':
+      return step.exit ? `Sa rotonda, lumabas sa ika-${step.exit} na labasan${papunta}` : `Dumaan sa rotonda${papunta}`;
+    case 'exit-roundabout':
+      return `Lumabas sa rotonda${papunta}`;
+    case 'ferry':
+      return `Sumakay ng ferry${step.road ? `: ${step.road}` : ''}`;
+    default:
+      return step.road ? `Dumiretso sa ${step.road}` : 'Dumiretso lang';
+  }
+}
 
 export const fil: Copy = {
   tagline: 'Bawas isip, dagdag gawa.',
@@ -138,7 +204,13 @@ export const fil: Copy = {
     aboutTitle: 'Tungkol dito',
     hoursTitle: 'Oras',
     photosTitle: 'Mga larawan',
-    photoBy: (name) => `Larawan: ${name}`,
+    photoCredit: (author, license) => `Larawan: ${[author, license].filter(Boolean).join(', ')}`,
+    photoCount: (i, n) => `${i} sa ${n}`,
+    openPhoto: (i, n) => `Buksan ang larawan ${i} sa ${n}`,
+    closePhotos: 'Isara ang mga larawan',
+    viewSource: 'Tingnan sa Wikimedia Commons',
+    photosFrom: 'Mga larawan mula sa Wikimedia Commons, may pagkilala sa bawat kumuha.',
+    seePhotosOnGoogle: 'Tingnan ang mga larawan sa Google Maps',
     photoLabel: (name) => `Larawan ng ${name}`,
     save: 'I-save',
     saveA11y: 'I-save ang lugar',
@@ -183,6 +255,38 @@ export const fil: Copy = {
     attraction: 'Pasyalan',
   },
   categoryWithCuisine: (cuisine) => `Restawrang ${cuisine}`,
+  directions: {
+    title: 'Direksiyon',
+    fromHere: 'Mula sa lokasyon mo',
+    fromArea: (area) => `Mula sa ${area}.`,
+    fromAreaHint: 'Buksan ang lokasyon para sa direksiyon mula sa kinaroroonan mo.',
+    modeQuestion: 'Paano ka pupunta?',
+    mode: { walking: 'Lakad', driving: 'Sasakyan', cycling: 'Bisikleta' },
+    duration: (seconds) => {
+      const minutes = Math.max(1, Math.round(seconds / 60));
+      if (minutes < 60) return `${minutes} minuto`;
+      const hours = Math.floor(minutes / 60);
+      return minutes % 60 ? `${hours} oras ${minutes % 60} minuto` : `${hours} oras`;
+    },
+    summary: (distance, place) => `${distance} papunta sa ${place}`,
+    noTraffic: 'Hindi kasama sa oras ang trapik.',
+    noTransit: 'Wala pa rito ang ruta ng jeep at bus. Makakatulong ang Google Maps para sa pampublikong sasakyan.',
+    loading: 'Hinahanap ang daan…',
+    noOriginTitle: 'Saan ka magsisimula?',
+    noOriginBody: 'Itakda ang lokasyon para makakuha ng direksiyon.',
+    stepsTitle: 'Bawat hakbang',
+    instruction: instructionFil,
+    openGoogle: 'Buksan sa Google Maps',
+    errorTitle: 'Hindi makuha ang direksiyon.',
+    errorBody: 'Hindi sumagot ang serbisyo ng ruta. Subukan muli, o gamitin ang Google Maps.',
+    noRouteTitle: 'Walang nahanap na ruta.',
+    noRouteBody: 'Baka walang daan papunta rito sa ganitong paraan. Subukan ang ibang paraan, o gamitin ang Google Maps.',
+    credit: 'Ruta mula sa OSRM. Datos ng mapa © mga nag-ambag sa OpenStreetMap.',
+    fixMap: 'Ayusin ang mapa',
+    mapLabel: (place) => `Mapa ng daan papunta sa ${place}`,
+    mapPreviewLabel: (place) => `Mapa ng ${place}. Magbubukas ng direksiyon.`,
+    mapNeedsBuild: 'Lalabas ang mapa sa buong build ng app. Gumagana pa rin ang direksiyon sa ibaba.',
+  },
   saved: {
     title: 'Naka-save',
     emptyTitle: 'Wala ka pang naka-save.',
@@ -215,6 +319,7 @@ export const fil: Copy = {
     dataGoogle: 'Google Places',
     dataOsm: 'OpenStreetMap, offline',
     dataUpdated: (date) => `Na-update noong ${date}`,
+    photosSource: 'Mga larawan',
     osmLicence:
       'Datos ng lugar © mga nag-ambag sa OpenStreetMap, sa ilalim ng Open Database License (ODbL). Gumagana kahit walang internet; walang account o API key.',
     accessibility:

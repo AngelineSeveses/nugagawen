@@ -4,9 +4,11 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
+    "@maplibre/maplibre-react-native": "^11.5.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~58.0.23",
     "expo-constants": "~58.0.15",
+    "expo-dev-client": "~58.0.18",
     "expo-font": "~58.0.11",
     "expo-haptics": "~58.0.7",
     "expo-image": "~58.0.18",
@@ -18,6 +20,7 @@
     "expo-sqlite": "~58.0.15",
     "expo-status-bar": "~58.0.4",
     "expo-system-ui": "~58.0.7",
+    "maplibre-gl": "^5.24.0",
     "phosphor-react-native": "^3.0.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",
@@ -31,6 +34,7 @@
     "react-native-worklets": "0.13.0"
   },
   "devDependencies": {
+    "@types/geojson": "^7946.0.16",
     "@types/jest": "30.0.0",
     "@types/react": "~19.3.0",
     "jest": "~30.5.2",
@@ -39,6 +43,7 @@
   },
   "scripts": {
     "start": "expo start",
+    "go": "expo start --go",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",

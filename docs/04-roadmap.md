@@ -124,8 +124,13 @@ Plain TypeScript in `src/features/recommendation/`: scoring, picking, and explan
 - Saved places and preferences are stored on the device in a key-value store (the choice between Expo's SQLite-backed store and AsyncStorage is made in Phase 8, with reasons).
 - Saved places store the place ID plus the minimum needed to list them offline, subject to the Phase 9 terms check.
 
-### 3.6 Directions without a map SDK
-**Directions** opens Google Maps or Apple Maps through a standard maps link. No in-app map in MVP: Nugagawen helps decide, the maps app navigates (the brief's positioning). This avoids a heavy dependency and map API costs.
+### 3.6 Maps and directions
+**Changed in Nov 2026, user decision.** The first plan was a plain link to Google Maps or Apple Maps. The app now has its own directions screen; the README's "Maps and directions" section lists each service, its cost and its limits.
+
+- **Map:** MapLibre React Native, because it's open source and works with any tile provider. It needs a development build, since Expo Go can't run its native code. In Expo Go the screen shows a notice and keeps the written directions.
+- **Tiles:** OpenFreeMap by default, because it needs no key or account. Setting `EXPO_PUBLIC_MAPTILER_KEY` switches to MapTiler.
+- **Routes:** the public OSRM server run by FOSSGIS, using OpenStreetMap roads. It's only for light use, so **a public launch needs its own routing server.**
+- **Still handed to Google Maps:** live navigation, jeepney and bus routes, and traffic. None of these exist in the free OpenStreetMap services used here.
 
 ### 3.7 API key protection (decision D6, Phase 9)
 A key inside a mobile app can be extracted. Two options:
@@ -199,6 +204,9 @@ Every dependency gets explained when it's added. Most of these come with the Exp
 | `jest-expo` (dev only) | Unit tests for the recommendation engine | 8 |
 | `expo-location` | Current location | 9 |
 | `@expo/ui` (only if our SDK supports what we need) | Native segmented control and grouped settings rows | 7–8 |
+| `@maplibre/maplibre-react-native` | The interactive map on phones | Nov 2026 |
+| `maplibre-gl` (v5; v6 doesn't bundle with Metro) | The same map in the web preview only | Nov 2026 |
+| `expo-dev-client` | Lets a development build connect to the dev server, as Expo Go does | Nov 2026 |
 
 **Deliberately not used in MVP:** NativeWind, Firebase, `react-native-maps`, Redux/Zustand, any UI kit.
 

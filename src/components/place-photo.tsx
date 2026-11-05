@@ -51,10 +51,10 @@ export function PlacePhoto({
         transition={150}
         accessibilityLabel={copy.place.photoLabel(placeName)}
       />
-      {showAttribution && photo.attribution ? (
+      {showAttribution && (photo.attribution || photo.license) ? (
         <View style={styles.attribution}>
           <Text variant="caption" style={styles.attributionText} numberOfLines={1}>
-            {copy.place.photoBy(photo.attribution)}
+            {copy.place.photoCredit(photo.attribution, photo.license)}
           </Text>
         </View>
       ) : null}

@@ -5,13 +5,22 @@
  */
 export type { Icon, IconProps, IconWeight } from 'phosphor-react-native';
 
+export { ArrowBendUpLeftIcon } from 'phosphor-react-native/src/icons/ArrowBendUpLeft';
+export { ArrowBendUpRightIcon } from 'phosphor-react-native/src/icons/ArrowBendUpRight';
+export { ArrowClockwiseIcon } from 'phosphor-react-native/src/icons/ArrowClockwise';
+export { ArrowSquareOutIcon } from 'phosphor-react-native/src/icons/ArrowSquareOut';
+export { ArrowUDownLeftIcon } from 'phosphor-react-native/src/icons/ArrowUDownLeft';
+export { ArrowUpIcon } from 'phosphor-react-native/src/icons/ArrowUp';
 export { ArrowsClockwiseIcon } from 'phosphor-react-native/src/icons/ArrowsClockwise';
 export { ArrowsOutIcon } from 'phosphor-react-native/src/icons/ArrowsOut';
 export { BankIcon } from 'phosphor-react-native/src/icons/Bank';
+export { BicycleIcon } from 'phosphor-react-native/src/icons/Bicycle';
 export { BinocularsIcon } from 'phosphor-react-native/src/icons/Binoculars';
+export { BoatIcon } from 'phosphor-react-native/src/icons/Boat';
 export { BookmarkSimpleIcon } from 'phosphor-react-native/src/icons/BookmarkSimple';
 export { BowlingBallIcon } from 'phosphor-react-native/src/icons/BowlingBall';
 export { BreadIcon } from 'phosphor-react-native/src/icons/Bread';
+export { CarIcon } from 'phosphor-react-native/src/icons/Car';
 export { CaretLeftIcon } from 'phosphor-react-native/src/icons/CaretLeft';
 export { CaretRightIcon } from 'phosphor-react-native/src/icons/CaretRight';
 export { CheckCircleIcon } from 'phosphor-react-native/src/icons/CheckCircle';
@@ -24,12 +33,14 @@ export { DiceFiveIcon } from 'phosphor-react-native/src/icons/DiceFive';
 export { DropIcon } from 'phosphor-react-native/src/icons/Drop';
 export { FilmStripIcon } from 'phosphor-react-native/src/icons/FilmStrip';
 export { FishIcon } from 'phosphor-react-native/src/icons/Fish';
+export { FlagCheckeredIcon } from 'phosphor-react-native/src/icons/FlagCheckered';
 export { FlowerIcon } from 'phosphor-react-native/src/icons/Flower';
 export { ForkKnifeIcon } from 'phosphor-react-native/src/icons/ForkKnife';
 export { GearSixIcon } from 'phosphor-react-native/src/icons/GearSix';
 export { GlobeIcon } from 'phosphor-react-native/src/icons/Globe';
 export { HamburgerIcon } from 'phosphor-react-native/src/icons/Hamburger';
 export { IceCreamIcon } from 'phosphor-react-native/src/icons/IceCream';
+export { ImagesIcon } from 'phosphor-react-native/src/icons/Images';
 export { InfoIcon } from 'phosphor-react-native/src/icons/Info';
 export { MagnifyingGlassIcon } from 'phosphor-react-native/src/icons/MagnifyingGlass';
 export { MapPinIcon } from 'phosphor-react-native/src/icons/MapPin';
